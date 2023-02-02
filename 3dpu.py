@@ -1,4 +1,16 @@
+#!/usr/bin/env python
+"""Provides multiple functions for 3D phase unwrapping.
+"""
 import numpy as np
+
+__author__ = "Youssouf Emine and El Mehdi Oudaoud"
+__copyright__ = "Copyright 2023, 3DPU project"
+__credits__ = ["Youssouf Emine", "El Mehdi Oudaoud", "Thibaut Vidal"]
+__license__ = "GPL"
+__version__ = "1.0.1"
+__maintainer__ = "Youssouf Emine"
+__email__ = "youssouf.emine@polymtl.ca"
+__status__ = "Production"
 
 dim = int(3)
 
@@ -22,3 +34,9 @@ def residual_loops(psi):
     rx = residuals(psi, 0)
     ry = residuals(psi, 1)
     rz = residuals(psi, 2)
+
+    # TODO: loop through the residuals and create
+    # residual loops.
+
+if __name__ == '__main__':
+    pass
