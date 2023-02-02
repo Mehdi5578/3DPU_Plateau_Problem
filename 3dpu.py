@@ -28,7 +28,7 @@ def residuals(psi, a: int):
     ax, ay = (1 + np.arange(dim-1) + a) % dim
     gx = wrap_grad(psi, a=ax)
     gy = wrap_grad(psi, a=ay)
-    return grad(gy, a=ax) - grad(gx, a=ay)
+    return np.diff(gy, a=ax) - np.diff(gx, a=ay)
 
 def residual_loops(psi):
     rx = residuals(psi, 0)
