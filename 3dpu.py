@@ -53,7 +53,7 @@ def unprocessed_residual(marker: ResidualMarker) -> Optional[Residual]:
             return r
     return None
 
-def is_boundary_residual(curr: SpinnedResidual, res: list[NDArray]) -> bool:
+def is_boundary_residual(curr: SpinnedResidual, res: list[NDArray], reverse: bool = False) -> bool:
     spin, (a, _, pos) = curr  
     if spin == 1:
         return pos[a] + 1 == res[a].shape[a]
