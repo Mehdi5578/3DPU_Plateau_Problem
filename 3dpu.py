@@ -161,7 +161,7 @@ def search_loop(start: SpinnedResidual, res: list[NDArray], marker: ResidualMark
 def join_open_loops(ploop: Loop, nloop: Loop) -> Loop:
     # The end of the first loop has to be
     # the start of the second loop.
-    assert(ploop[-1] == nloop[1])
+    assert(ploop[-1] == nloop[0])
 
     # Join the two loops.
     loop = ploop + nloop[1:]
