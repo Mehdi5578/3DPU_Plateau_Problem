@@ -54,10 +54,12 @@ def unprocessed_residual(marker: ResidualMarker) -> Optional[Residual]:
     return None
 
 def is_boundary_residual(curr: SpinnedResidual, res: list[NDArray], reverse: bool = False) -> bool:
-    spin, (a, _, pos) = curr  
-    if spin == 1:
+    s, (a, _, pos) = curr
+    if reverse:
+        s = -s
+    if s == 1:
         return pos[a] + 1 == res[a].shape[a]
-    elif spin == -1:
+    elif s == -1:
         return pos[a] == 0
 
 def potential_neighbors(curr: SpinnedResidual, reverse: bool = False) -> list[SpinnedResidual]:
@@ -133,7 +135,7 @@ def search_loop(start: SpinnedResidual, res: list[NDArray], marker: ResidualMark
         _, r = curr
         loop.append(curr)
         marker[r] = 0
-        if is_boundary_residual(curr, res):
+        if is_boundary_residual(curr, res, reverse):
             # Boundary residual.
             return 0, loop
         else:
