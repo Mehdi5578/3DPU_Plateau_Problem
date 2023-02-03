@@ -201,16 +201,23 @@ def residual_loops(psi: NDArray) -> list[FlaggedLoop]:
         if s == 1:
             loops.append((1, loop))
         else: # The loop is open.
+            # Unmark the loop.
+            mark_loop(loop, marker, -1)
+
+            # Get the reversed loop.
             s, rloop = search_loop((1, r), res, marker, True)
             rloop = list(reversed(rloop))
-            if s == 1:
-                # Unmark the loop.
-                mark_loop(loop, marker, -1)
 
+            # If the reversed loop is closed.
+            if s == 1:
                 loops.append((1, rloop))
             else:
+                # Unmark the reversed loop.
+                mark_loop(rloop, marker, -1)
+
+                # Join the two loops.
                 loop = join_open_loops(rloop, loop)
-                
+
                 # Mark the loop.
                 mark_loop(loop, marker, 1)
 
