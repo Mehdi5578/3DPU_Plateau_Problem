@@ -2,11 +2,12 @@
 """Provides multiple functions for 3D phase unwrapping.
 """
 from copy import deepcopy
+from dataclasses import dataclass
 import numpy as np
 import random
 
 from typing import Union, Optional
-from numpy.typing import NDArray
+from numpy.typing import NDArray, _Shape
 
 __author__ = "Youssouf Emine and El Mehdi Oudaoud"
 __copyright__ = "Copyright 2023, 3DPU project"
@@ -16,12 +17,6 @@ __version__ = "1.0.1"
 __maintainer__ = "Youssouf Emine"
 __email__ = "youssouf.emine@polymtl.ca"
 __status__ = "Production"
-
-Residual = tuple[int, int, tuple[int,...]]
-SpinnedResidual = tuple[int, Residual]
-ResidualMarker = dict[Residual, int]
-Loop = list[SpinnedResidual]
-FlaggedLoop = tuple[int, Loop]
 
 dim = int(3)
 
@@ -41,11 +36,49 @@ def residuals(psi: NDArray, a: int) -> NDArray:
     gy = wrap_grad(psi, a=ay)
     return np.diff(gy, a=ax) - np.diff(gx, a=ay)
 
+@dataclass
+class Residual:
+    ax: int
+    ori: int
+    pos: NDArray
+    
+    def __eq__(self, other) -> bool:
+        return self.ax == other.ax and tuple(self.pos) == tuple(other.pos) and self.ori == other.ori
+
+    def __hash__(self) -> int:
+        return tuple((self.ax, tuple(self.pos), self.ori)).__hash__()
+
+@dataclass
+class SpinnedResidual:
+    spin: int
+    res: Residual
+    
+    def __eq__(self, other) -> bool:
+        return self.spin == other.spin and self.res.__eq__(other.res)
+
+    def is_boundary(self, shape: _Shape, reverse: bool = False) -> bool:
+        s = self.spin
+        if reverse:
+            s = -self.spin
+        if s == 1:
+            return self.res.pos[self.res.ax] + 1 == shape[self.res.ax]
+        else:
+            return self.res.pos[self.res.ax] == 0
+
+ResidualMarker = dict[Residual, int]
+Loop = list[SpinnedResidual]
+
+@dataclass
+class FlaggedLoop:
+    closed: bool
+    loop: Loop
+
 def unprocess_all(res: list[NDArray], marker: ResidualMarker) -> None:
-    for a, ra in enumerate(res):
-        for idx, r in np.ndenumerate(ra):
-            if r != 0:
-                marker[(a, r, idx)] = -1
+    for ax, rax in enumerate(res):
+        for idx, ori in np.ndenumerate(rax):
+            if ori != 0:
+                pos = np.array(idx)
+                marker[Residual(ax, ori, pos)] = -1
 
 def unprocessed_residual(marker: ResidualMarker) -> Optional[Residual]:
     for r, m in marker.items():
@@ -53,45 +86,32 @@ def unprocessed_residual(marker: ResidualMarker) -> Optional[Residual]:
             return r
     return None
 
-def is_boundary_residual(curr: SpinnedResidual, res: list[NDArray], reverse: bool = False) -> bool:
-    s, (a, _, pos) = curr
-    if reverse:
-        s = -s
-    if s == 1:
-        return pos[a] + 1 == res[a].shape[a]
-    elif s == -1:
-        return pos[a] == 0
-
-def potential_neighbors(curr: SpinnedResidual, reverse: bool = False) -> list[SpinnedResidual]:
-    # Retreive the axis, the sign and the position
-    # of the current residual.
-    s, (a, r, pos) = curr
-
+    
+def potential_neighbors(self: SpinnedResidual, reverse: bool = False) -> list[SpinnedResidual]:
     # List of potential neighbors.
     neighbors = []
 
     # Add the neighbor with the same axis as
     # the current residual.
-    npos = deepcopy(pos)
+    npos = deepcopy(self.res.pos)
     if reverse:
-        npos[a] -= s
+        npos[self.res.ax] -= self.spin
     else:
-        npos[a] += s
-    neighbors.append((s, (a, r, npos)))
+        npos[self.res.ax] += self.spin
+    neighbors.append(SpinnedResidual(self.spin, Residual(self.res.ax, self.res.ori, npos)))
 
     # Add the neighbors for other axes.
     for d in range(1, dim):
         # Get the axis of the neighbor.
-        na = (a + d) % dim
+        na = (self.res.ax + d) % dim
         for i, ns in zip([0, 1], [-1, 1]):
-            npos = deepcopy(pos)
+            npos = deepcopy(self.res.pos)
             if reverse:
-                npos[a] -= s
+                npos[self.res.ax] -= self.spin
                 npos[na] -= i
             else:
                 npos[na] += i
-            neighbors.append((ns, (na, ns * r, npos)))
-
+            neighbors.append(SpinnedResidual(ns, Residual(na, self.res.ori * ns, npos)))
     return neighbors
 
 def next_residual(curr: SpinnedResidual, marker: ResidualMarker, reverse: bool = False, shuffle: bool = True) -> Optional[SpinnedResidual]:
@@ -104,16 +124,16 @@ def next_residual(curr: SpinnedResidual, marker: ResidualMarker, reverse: bool =
 
     # Look for the first neighbor that has not been
     # yet processed.
-    for s, r in neighbors:
-        if r in marker and marker[r] == -1:
-            return s, r
+    for spinned_residual in neighbors:
+        if spinned_residual.res in marker and marker[spinned_residual.res] == -1:
+            return spinned_residual
 
     # Return None.
     return None
 
 def mark_loop(loop: Loop, marker: ResidualMarker, m: int) -> None:
-    for _, s in loop:
-        marker[s] = m
+    for spinned_residual in loop:
+        marker[spinned_residual.res] = m
 
 def close_loop(curr: SpinnedResidual, loop: Loop, reverse: bool = False) -> int:
     # List of potential neighbors.
@@ -125,19 +145,18 @@ def close_loop(curr: SpinnedResidual, loop: Loop, reverse: bool = False) -> int:
         if item in neighbors:
             return i
 
-    # Return None.
+    # Return -1.
     return -1
 
-def search_loop(start: SpinnedResidual, res: list[NDArray], marker: ResidualMarker, reverse: bool = False) -> FlaggedLoop:
+def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, reverse: bool = False) -> FlaggedLoop:
     loop = []
     curr = start
     while True:
-        _, r = curr
         loop.append(curr)
-        marker[r] = 0
-        if is_boundary_residual(curr, res, reverse):
+        marker[curr.res] = 0
+        if curr.is_boundary_residual(shape, reverse):
             # Boundary residual.
-            return 0, loop
+            return FlaggedLoop(False, loop)
         else:
             i = close_loop(curr, loop, reverse)
             if i != -1:
@@ -148,7 +167,7 @@ def search_loop(start: SpinnedResidual, res: list[NDArray], marker: ResidualMark
                 mark_loop(loop[i:], marker, 1)
 
                 # Retreive only the loop.
-                return 1, loop[i:]
+                return FlaggedLoop(True, loop)
             else:
                 # Get the next residual.
                 neighbor = next_residual(curr, marker, reverse)
@@ -169,6 +188,8 @@ def join_open_loops(ploop: Loop, nloop: Loop) -> Loop:
     return loop
 
 def residual_loops(psi: NDArray) -> list[FlaggedLoop]:
+    # Store the shape of psi.
+    shape = psi.shape
     # Store the list of all residuals.
     res = []
     for a in range(dim):
@@ -197,22 +218,23 @@ def residual_loops(psi: NDArray) -> list[FlaggedLoop]:
         if not r:
             break
 
-        s, loop = search_loop((1, r), res, marker, False)
+        flagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, False)
+        loop = flagged_loop.loop
 
         # If the loop is closed.
-        if s == 1:
-            loops.append((1, loop))
+        if flagged_loop.closed:
+            loops.append(flagged_loop)
         else: # The loop is open.
             # Unmark the loop.
             mark_loop(loop, marker, -1)
 
             # Get the reversed loop.
-            s, rloop = search_loop((1, r), res, marker, True)
-            rloop = list(reversed(rloop))
+            rflagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, True)
+            rloop = list(reversed(rflagged_loop.loop))
 
             # If the reversed loop is closed.
-            if s == 1:
-                loops.append((1, rloop))
+            if rflagged_loop.closed:
+                loops.append(FlaggedLoop(True, rloop))
             else:
                 # Unmark the reversed loop.
                 mark_loop(rloop, marker, -1)
@@ -223,7 +245,7 @@ def residual_loops(psi: NDArray) -> list[FlaggedLoop]:
                 # Mark the loop.
                 mark_loop(loop, marker, 1)
 
-                loops.append((0, loop))
+                loops.append(FlaggedLoop(False, loop))
     return loops
 
 if __name__ == '__main__':
