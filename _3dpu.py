@@ -34,7 +34,8 @@ def residuals(psi: NDArray, a: int) -> NDArray:
     ax, ay = (a + np.arange(1, dim)) % dim
     gx = wrap_grad(psi, a=ax)
     gy = wrap_grad(psi, a=ay)
-    return np.diff(gy, a=ax) - np.diff(gx, a=ay)
+    return np.diff(gy, axis=ax) - np.diff(gx, axis=ay)
+    
 
 @dataclass
 class Residual:
