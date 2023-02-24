@@ -2,7 +2,7 @@ import numpy as np
 import random
 from copy import *
 
-dim = 3
+dim = int(3)
 
 M = np.array([
     [0,0,0,0],
