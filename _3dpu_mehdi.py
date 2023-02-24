@@ -46,14 +46,18 @@ M_z = np.array([[1,-1,0,0,0],
                 [3,1,0,0,1],
                 [3,1,0,0,-1]])
 
+
 def wrap(phi):
     return np.round(phi / (2 * np.pi)).astype(int)
+
 
 def grad(psi, a: int):
     return np.diff(psi, axis=a)
 
+
 def wrap_grad(psi, a: int):
     return wrap(grad(psi, a))
+
 
 def residuals(psi, a: int):
     assert(a >= 0 and a < dim)
@@ -68,13 +72,6 @@ def verify(indice,l):
     shpe = np.array(l).shape
     return (ind >= 0).all() and (ind < shpe).all()
 
-# def au_bord(chemin,S):
-#     shpe = np.array(S).shape
-#     booleen = True
-#     for elem in chemin:
-#         booleen = booleen and not(0 in elem[1:]) and (np.array(elem)<=shpe).all()
-
-#     return not booleen
 
 def au_bord_pos(s,S):
     shpe = np.array(S).shape
@@ -85,6 +82,7 @@ def au_bord_pos(s,S):
         return (s[2] == 0) or (s[2] == shpe[2]-1)
     if s[0] == 2:
         return (s[3] == 0) or (s[3] == shpe[3]-1)
+
 
 def are_neighbours(s1,s2):
     [ax,i,j,k] = s2
@@ -106,6 +104,7 @@ def are_neighbours(s1,s2):
     
     return booleen
 
+
 def same_cube(s1,s2):
     v1 = np.array(s1)
     v2 = np.array(s2)
@@ -115,6 +114,7 @@ def same_cube(s1,s2):
         if (v2 == d).all():
             return True
     return False
+
 
 def get_neighbour(deb,St) :
     voisins = []
@@ -138,7 +138,6 @@ def get_neighbour(deb,St) :
             if verify(ind,St) and (St[ind] != 0) and St[ind] == mz[1]*St[ax,i,j,k] :
                 voisins.append(ind)
                 
-    
     return voisins
 
 
@@ -153,16 +152,16 @@ def all_residuals(psi):
     St[2,:rz.shape[0],:rz.shape[1],:rz.shape[2]] = rz
     return St
 
+
 def not_knot(ch):
     booleen = False
     for i in range(len(ch)-2):
         booleen = booleen or (are_neighbours(ch[i],ch[i+2]))
     return not booleen
 
-def residual_loops(chemins,f,St):
-    
-    original_St = copy(St)
 
+def residual_loops(chemins,St): 
+    original_St = copy(St)
     while (St != 0).any():
         # Initilize the start position
         chemin = []
@@ -172,8 +171,6 @@ def residual_loops(chemins,f,St):
         suivant = deb
         init = deb
         print("new il reste{}".format(len(ax)))
-        f.write("new il reste{}".format(len(ax)))
-        f.write('\n')
         chemin.append(deb)
         #getting first loop
 
@@ -188,10 +185,6 @@ def residual_loops(chemins,f,St):
 
         #seeing if it a closed loop
         if init in get_neighbour(deb,original_St):
-            f.write(str((init,deb)))
-            f.write('\n')
-            f.write("boucle fermée")
-            f.write('\n')
             if  len(chemin) > 3 and not_knot(chemin):
                 chemin.append(init)  
                 chemins.append((1,chemin))
@@ -204,8 +197,6 @@ def residual_loops(chemins,f,St):
                 St[init] = 0
 
             else :
-                f.write("le chemin a été abandonné")
-                f.write('\n')
                 for k in chemin :
                     St[k] = original_St[k]
         # if not a closed loop 
@@ -215,9 +206,6 @@ def residual_loops(chemins,f,St):
             suivant = deb
 
             while get_neighbour(deb,St) != []:
-                
-                f.write("parti dans l'autre direction")
-                f.write('\n')
                 suivants = get_neighbour(deb,St)
                 St[deb] = 0
                 random_index = random.randint(0,len(suivants)-1)
@@ -233,8 +221,6 @@ def residual_loops(chemins,f,St):
                 St[chemin[-1]] = 0
 
             else :
-                f.write("chemin pas gardé")
-                f.write('\n')
                 for k in chemin :
                     St[k] = original_St[k]
                 
