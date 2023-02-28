@@ -35,7 +35,7 @@ def residuals(psi: NDArray, a: int) -> NDArray:
     gx = wrap_grad(psi, a=ax)
     gy = wrap_grad(psi, a=ay)
     return np.diff(gy, axis=ax) - np.diff(gx, axis=ay)
-    
+
 
 @dataclass
 class Residual:
@@ -77,6 +77,7 @@ class FlaggedLoop:
 def unprocess_all(res: list[NDArray], marker: ResidualMarker) -> None:
     for ax, rax in enumerate(res):
         for idx, ori in np.ndenumerate(rax):
+            
             if ori != 0:
                 pos = np.array(idx)
                 marker[Residual(ax, ori, pos)] = -1
@@ -88,32 +89,52 @@ def unprocessed_residual(marker: ResidualMarker) -> Optional[Residual]:
     return None
 
     
-def potential_neighbors(self: SpinnedResidual, reverse: bool = False) -> list[SpinnedResidual]:
+# def potential_neighbors(self: SpinnedResidual, reverse: bool = False) -> list[SpinnedResidual]:
+#     # List of potential neighbors.
+#     neighbors = []
+
+#     # Add the neighbor with the same axis as
+#     # the current residual.
+#     npos = deepcopy(self.res.pos)
+#     if reverse:
+#         npos[self.res.ax] -= self.spin
+#     else:
+#         npos[self.res.ax] += self.spin
+#     neighbors.append(SpinnedResidual(self.spin, Residual(self.res.ax, self.res.ori, npos)))
+
+
+def potential_neighbors_no_reverse(self: SpinnedResidual) -> list[SpinnedResidual]:
     # List of potential neighbors.
     neighbors = []
-
     # Add the neighbor with the same axis as
     # the current residual.
     npos = deepcopy(self.res.pos)
-    if reverse:
-        npos[self.res.ax] -= self.spin
-    else:
-        npos[self.res.ax] += self.spin
+    npos[self.res.ax] += self.spin
     neighbors.append(SpinnedResidual(self.spin, Residual(self.res.ax, self.res.ori, npos)))
 
     # Add the neighbors for other axes.
     for d in range(1, dim):
-        # Get the axis of the neighbor.
         na = (self.res.ax + d) % dim
-        for i, ns in zip([0, 1], [-1, 1]):
-            npos = deepcopy(self.res.pos)
-            if reverse:
-                npos[self.res.ax] -= self.spin
-                npos[na] -= i
-            else:
+        if self.spin == 1:
+            for i, ns in zip([0, 1], [-1, 1]):
+                npos = deepcopy(self.res.pos)
+                npos[na] += i*self.spin
+                neighbors.append(SpinnedResidual(ns, Residual(na, self.res.ori * ns, npos)))
+        if self.spin == -1:
+            for i, ns in zip([0, 1], [1, -1]):
+                npos = deepcopy(self.res.pos)
                 npos[na] += i
-            neighbors.append(SpinnedResidual(ns, Residual(na, self.res.ori * ns, npos)))
+                npos[self.res.ax] -= 1
+                neighbors.append(SpinnedResidual(self.spin*ns, Residual(na, self.res.ori * ns, npos)))
     return neighbors
+
+def potential_neighbors(self : SpinnedResidual, reverse:bool = False ) -> list[SpinnedResidual]:
+    if not(reverse) :
+        return potential_neighbors_no_reverse(self)
+    else:
+        curr = self
+        curr.spin = -self.spin
+        return potential_neighbors_no_reverse(curr)
 
 def next_residual(curr: SpinnedResidual, marker: ResidualMarker, reverse: bool = False, shuffle: bool = True) -> Optional[SpinnedResidual]:
     # List of potential neighbors.
@@ -155,7 +176,7 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
     while True:
         loop.append(curr)
         marker[curr.res] = 0
-        if curr.is_boundary_residual(shape, reverse):
+        if curr.is_boundary(shape, reverse):
             # Boundary residual.
             return FlaggedLoop(False, loop)
         else:
@@ -174,6 +195,7 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
                 neighbor = next_residual(curr, marker, reverse)
                 if neighbor:
                     curr = neighbor
+                    print(curr)
                 else:
                     # TODO: handle this.
                     raise ValueError()
@@ -188,7 +210,7 @@ def join_open_loops(ploop: Loop, nloop: Loop) -> Loop:
     
     return loop
 
-def residual_loops(psi: NDArray) -> list[FlaggedLoop]:
+def residual_loops(loops,psi: NDArray) -> list[FlaggedLoop]:
     # Store the shape of psi.
     shape = psi.shape
     # Store the list of all residuals.
@@ -208,12 +230,13 @@ def residual_loops(psi: NDArray) -> list[FlaggedLoop]:
     # 1 if it is closed.
     # items contains the list of residuals
     # in the loop.
-    loops = []
+    
 
     # Loop until all the residual has been processed
     while True:
         # Look for unprocessed residual.
         r = unprocessed_residual(marker)
+        
 
         # If all residuals were processed.
         if not r:
