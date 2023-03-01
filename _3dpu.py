@@ -131,8 +131,9 @@ def potential_neighbors_no_reverse(self: SpinnedResidual) -> list[SpinnedResidua
 def potential_neighbors(self : SpinnedResidual, reverse:bool = False ) -> list[SpinnedResidual]:
     if not(reverse) :
         return potential_neighbors_no_reverse(self)
+    
     else:
-        curr = self
+        curr = deepcopy(self)
         curr.spin = -self.spin
         return potential_neighbors_no_reverse(curr)
 
@@ -164,7 +165,7 @@ def close_loop(curr: SpinnedResidual, loop: Loop, reverse: bool = False) -> int:
     # Look for the first neighbor that has not been
     # yet processed.
     for i, item in enumerate(loop):
-        if item in neighbors:
+        if item in neighbors :
             return i
 
     # Return -1.
@@ -177,17 +178,19 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
         loop.append(curr)
         marker[curr.res] = 0
         if curr.is_boundary(shape, reverse):
-            # Boundary residual.
+            # Boundary residual. FAUX !!
             return FlaggedLoop(False, loop)
         else:
             i = close_loop(curr, loop, reverse)
+            print(i,curr,loop)
             if i != -1:
                 # Unmark all residuals before i.
                 mark_loop(loop[:i], marker, -1)
 
                 # Mark all residuals after i as processed.
                 mark_loop(loop[i:], marker, 1)
-
+                loop = [curr] + loop[i:] 
+                
                 # Retreive only the loop.
                 return FlaggedLoop(True, loop)
             else:
@@ -195,8 +198,11 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
                 neighbor = next_residual(curr, marker, reverse)
                 if neighbor:
                     curr = neighbor
-                    print(curr)
+                    
                 else:
+                    print(curr)
+                    print()
+                    print(reverse)
                     # TODO: handle this.
                     raise ValueError()
 
@@ -236,15 +242,15 @@ def residual_loops(loops,psi: NDArray) -> list[FlaggedLoop]:
     while True:
         # Look for unprocessed residual.
         r = unprocessed_residual(marker)
-        
+        print(r)
 
         # If all residuals were processed.
         if not r:
             break
-
+        print("on cherche la loop avec serach loop")
         flagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, False)
         loop = flagged_loop.loop
-
+        print("on a trouvé une loop")
         # If the loop is closed.
         if flagged_loop.closed:
             loops.append(flagged_loop)
@@ -254,10 +260,12 @@ def residual_loops(loops,psi: NDArray) -> list[FlaggedLoop]:
 
             # Get the reversed loop.
             rflagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, True)
+            
             rloop = list(reversed(rflagged_loop.loop))
 
             # If the reversed loop is closed.
             if rflagged_loop.closed:
+                # ne foctionne pas (le concept ?)
                 loops.append(FlaggedLoop(True, rloop))
             else:
                 # Unmark the reversed loop.
