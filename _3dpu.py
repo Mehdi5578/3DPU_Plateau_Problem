@@ -148,7 +148,7 @@ def next_residual(curr: SpinnedResidual, marker: ResidualMarker, reverse: bool =
     # Look for the first neighbor that has not been
     # yet processed.
     for spinned_residual in neighbors:
-        if spinned_residual.res in marker and marker[spinned_residual.res] == -1:
+        if spinned_residual.res in marker and marker[spinned_residual.res] != 0:
             return spinned_residual
 
     # Return None.
@@ -188,7 +188,7 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
                 mark_loop(loop[:i], marker, -1)
 
                 # Mark all residuals after i as processed.
-                mark_loop(loop[i:], marker, 1)
+                mark_loop([curr] + loop[i:], marker, 1)
                 loop = [curr] + loop[i:] 
                 
                 # Retreive only the loop.
@@ -216,7 +216,7 @@ def join_open_loops(ploop: Loop, nloop: Loop) -> Loop:
     
     return loop
 
-def residual_loops(loops,psi: NDArray) -> list[FlaggedLoop]:
+def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
     # Store the shape of psi.
     shape = psi.shape
     # Store the list of all residuals.
@@ -228,7 +228,7 @@ def residual_loops(loops,psi: NDArray) -> list[FlaggedLoop]:
     # -1: unprocessed
     # 0: in process
     # 1: processed
-    marker = {}
+    
     unprocess_all(res, marker)
 
     # A loop will have (flag, items):
