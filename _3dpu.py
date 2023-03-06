@@ -171,9 +171,12 @@ def close_loop(curr: SpinnedResidual, loop: Loop, reverse: bool = False) -> int:
     # Return -1.
     return -1
 
-def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, reverse: bool = False) -> FlaggedLoop:
+def search_loop(start: SpinnedResidual, shape, marker: ResidualMarker, rev: bool = False) -> FlaggedLoop:
     loop = []
-    curr = start
+    curr = deepcopy(start)
+    reverse = False
+    if rev :
+        curr.spin = -start.spin
     while True:
         loop.append(curr)
         marker[curr.res] = 0
@@ -210,7 +213,7 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
 def join_open_loops(ploop: Loop, nloop: Loop) -> Loop:
     # The end of the first loop has to be
     # the start of the second loop.
-    assert(ploop[-1] == nloop[0])
+    assert(ploop[-1].res == nloop[0].res)
 
     # Join the two loops.
     loop = ploop + nloop[1:]
@@ -273,6 +276,8 @@ def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
                 mark_loop(rloop, marker, -1)
 
                 # Join the two loops.
+                print(rloop)
+                print(loop)
                 loop = join_open_loops(rloop, loop)
                 print("joining loops")
                 # Mark the loop.
