@@ -148,7 +148,7 @@ def next_residual(curr: SpinnedResidual, marker: ResidualMarker, reverse: bool =
     # Look for the first neighbor that has not been
     # yet processed.
     for spinned_residual in neighbors:
-        if spinned_residual.res in marker and marker[spinned_residual.res] != 0:
+        if spinned_residual.res in marker and marker[spinned_residual.res] == -1:
             return spinned_residual
 
     # Return None.
@@ -178,12 +178,12 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
         loop.append(curr)
         marker[curr.res] = 0
         if curr.is_boundary(shape, reverse):
-            # Boundary residual. FAUX !!
+            # Boundary residual. !! NB : les deux bouts doivent etre aux bords)
             return FlaggedLoop(False, loop)
         else:
             i = close_loop(curr, loop, reverse)
-            print(i,curr,loop)
-            if i != -1:
+            # print(i,curr,loop)
+            if i != -1 and len(loop[i:]) > 2:
                 # Unmark all residuals before i.
                 mark_loop(loop[:i], marker, -1)
 
@@ -198,6 +198,7 @@ def search_loop(start: SpinnedResidual, shape: _Shape, marker: ResidualMarker, r
                 neighbor = next_residual(curr, marker, reverse)
                 if neighbor:
                     curr = neighbor
+                    print("Get neg")
                     
                 else:
                     print(curr)
@@ -242,15 +243,15 @@ def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
     while True:
         # Look for unprocessed residual.
         r = unprocessed_residual(marker)
-        print(r)
+        # print(r)
 
         # If all residuals were processed.
         if not r:
             break
-        print("on cherche la loop avec serach loop")
+        # print("on cherche la loop avec serach loop")
         flagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, False)
         loop = flagged_loop.loop
-        print("on a trouvé une loop")
+        # print("on a trouvé une loop")
         # If the loop is closed.
         if flagged_loop.closed:
             loops.append(flagged_loop)
@@ -265,7 +266,7 @@ def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
 
             # If the reversed loop is closed.
             if rflagged_loop.closed:
-                # ne foctionne pas (le concept ?)
+                
                 loops.append(FlaggedLoop(True, rloop))
             else:
                 # Unmark the reversed loop.
@@ -273,7 +274,7 @@ def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
 
                 # Join the two loops.
                 loop = join_open_loops(rloop, loop)
-
+                print("joining loops")
                 # Mark the loop.
                 mark_loop(loop, marker, 1)
 
