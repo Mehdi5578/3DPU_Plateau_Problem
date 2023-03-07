@@ -57,6 +57,9 @@ class SpinnedResidual:
     def __eq__(self, other) -> bool:
         return self.spin == other.spin and self.res.__eq__(other.res)
 
+    def __hash__(self) -> int:
+        return tuple((self.spin, self.res.ax, self.res.ori, tuple(self.res.pos))).__hash__()
+    
     def is_boundary(self, shape: _Shape, reverse: bool = False) -> bool:
         s = self.spin
         if reverse:
@@ -174,19 +177,20 @@ def close_loop(curr: SpinnedResidual, loop: Loop, reverse: bool = False) -> int:
 def search_loop(start: SpinnedResidual, shape, marker: ResidualMarker, rev: bool = False) -> FlaggedLoop:
     loop = []
     curr = deepcopy(start)
-    reverse = False
+    
     if rev :
         curr.spin = -start.spin
     while True:
         loop.append(curr)
         marker[curr.res] = 0
-        if curr.is_boundary(shape, reverse):
+        if curr.is_boundary(shape):
             # Boundary residual. !! NB : les deux bouts doivent etre aux bords)
             return FlaggedLoop(False, loop)
         else:
-            i = close_loop(curr, loop, reverse)
+            i = close_loop(curr, loop)
             # print(i,curr,loop)
             if i != -1 and len(loop[i:]) > 2:
+                print("this loop is dicarded")
                 # Unmark all residuals before i.
                 mark_loop(loop[:i], marker, -1)
 
@@ -198,15 +202,14 @@ def search_loop(start: SpinnedResidual, shape, marker: ResidualMarker, rev: bool
                 return FlaggedLoop(True, loop)
             else:
                 # Get the next residual.
-                neighbor = next_residual(curr, marker, reverse)
+                neighbor = next_residual(curr, marker)
                 if neighbor:
                     curr = neighbor
-                    print("Get neg")
                     
                 else:
                     print(curr)
                     print()
-                    print(reverse)
+                    print(rev)
                     # TODO: handle this.
                     raise ValueError()
 
@@ -269,21 +272,25 @@ def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
 
             # If the reversed loop is closed.
             if rflagged_loop.closed:
-                
                 loops.append(FlaggedLoop(True, rloop))
+                
             else:
                 # Unmark the reversed loop.
                 mark_loop(rloop, marker, -1)
 
                 # Join the two loops.
-                print(rloop)
-                print(loop)
+                # print(rloop)
+                # print(loop)
                 loop = join_open_loops(rloop, loop)
                 print("joining loops")
                 # Mark the loop.
-                mark_loop(loop, marker, 1)
-
-                loops.append(FlaggedLoop(False, loop))
+                loop_res = [pos.res for pos in loop]
+                #vu que la demi loop est non marquée, rloop peut avoir des élements de loop.
+                if len(set(loop_res)) == len(loop_res):
+                    mark_loop(loop, marker, 1)
+                    loops.append(FlaggedLoop(False, loop))
+                else:
+                    mark_loop(loop,marker,-1)
     return loops
 
 if __name__ == '__main__':
