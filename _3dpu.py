@@ -190,7 +190,7 @@ def search_loop(start: SpinnedResidual, shape, marker: ResidualMarker, rev: bool
             i = close_loop(curr, loop)
             # print(i,curr,loop)
             if i != -1 and len(loop[i:]) > 2:
-                print("this loop is dicarded")
+                # print("this loop is discarded")
                 # Unmark all residuals before i.
                 mark_loop(loop[:i], marker, -1)
 
@@ -282,7 +282,7 @@ def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
                 # print(rloop)
                 # print(loop)
                 loop = join_open_loops(rloop, loop)
-                print("joining loops")
+                # print("joining loops")
                 # Mark the loop.
                 loop_res = [pos.res for pos in loop]
                 #vu que la demi loop est non marquée, rloop peut avoir des élements de loop.
