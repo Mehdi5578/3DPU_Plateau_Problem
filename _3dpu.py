@@ -7,7 +7,7 @@ import numpy as np
 import random
 
 from typing import Union, Optional
-from numpy.typing import NDArray, _Shape
+from numpy.typing import NDArray
 
 __author__ = "Youssouf Emine and El Mehdi Oudaoud"
 __copyright__ = "Copyright 2023, 3DPU project"
@@ -60,7 +60,7 @@ class SpinnedResidual:
     def __hash__(self) -> int:
         return tuple((self.spin, self.res.ax, self.res.ori, tuple(self.res.pos))).__hash__()
     
-    def is_boundary(self, shape: _Shape, reverse: bool = False) -> bool:
+    def is_boundary(self, shape, reverse: bool = False) -> bool:
         s = self.spin
         if reverse:
             s = -self.spin
