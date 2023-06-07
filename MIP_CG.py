@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Provides multiple functions for the MIP Column Generation for one loop .
+"""Provides some essential functions for the MIP Column Generation for one loop .
 """
 from copy import deepcopy
 from dataclasses import dataclass
@@ -12,5 +12,12 @@ from numpy.typing import NDArray
 
 dim = int(3)
 
-def current_cube (loop : Loop ):
+def extract_residuals (loop : Loop ):
+    l = []
+    for k in loop:
+        l.append(k.res.pos)
+    return l
+
+
+
     
