@@ -47,6 +47,7 @@ def closed_paths_2D(carre : Square) -> list[Square]:
     return L
 
 
+def 
 
 
     
