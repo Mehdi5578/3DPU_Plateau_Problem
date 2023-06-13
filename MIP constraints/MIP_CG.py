@@ -5,8 +5,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
 import random
-import sys
-sys.path.insert(0, '/home/amninder/Desktop/Folder_2')
+from _3DLoops._3dpu import *
 
 
 
