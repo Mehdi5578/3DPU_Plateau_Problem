@@ -1,0 +1,21 @@
+PythonPath : 'c:\\Users\\0\\OneDrive\\Documents\\Montréal 4A\\Les études\\Chair_SCALE_AI\\3dPU'
+
+Paths_to_MRI :
+  pahse : r"C:\Users\0\OneDrive\Documents\Montréal 4A\Les études\Chair AI-SCALE\ph_1.nii"
+  chemin_mag : r"C:\Users\0\OneDrive\Documents\Montréal 4A\Les études\Chair AI-SCALE\mag_1.nii"
+  phase2 : r"C:\Users\0\Downloads\TGVQSM-plus\TGVQSM-master-011045626121baa8bfdd6633929974c732ae35e3\test_data\epi3d_test_phase.nii"
+  phase3 : r"C:\Users\0\Downloads\20170327_qsm2016_recon_challenge\20170327_qsm2016_recon_challenge\data\phs_wrap.nii"
+
+
+Created_loops :
+  loop_limited : "\CreatedLoops\\"
+
+
+Limits :
+  x_min: 50
+  x_max : 130
+  y_min : 50
+  y_max : 130
+  z_min : 20
+  z_max : 60
+  t : 1
