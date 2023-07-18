@@ -1,5 +1,5 @@
 pyaml==23.7.0
 nibabel==5.1.0
 torch
-
+nipype
 
