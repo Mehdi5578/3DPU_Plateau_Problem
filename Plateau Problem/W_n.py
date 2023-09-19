@@ -25,14 +25,14 @@ for i in tqdm(range(N)):
         ph_i = 0
         ph_j = 0
 
-        if x < A[i%N] and A[(i-1)%N] <= x :
+        if x < A[i] and A[(i-1)] <= x :
           ph_i = -N/(2*np.pi)
-        elif x < A[(i+1)%N] and A[i%N] <= x :
+        elif x < A[(i+1)] and A[i] <= x :
           ph_i = N/(2*np.pi)
 
-        if y < A[j%N] and A[(j-1)%N] <= y :
+        if y < A[j] and A[(j-1)] <= y :
           ph_j = -N/(2*np.pi)
-        elif y < A[(j+1)%N] and A[j%N] <= y :
+        elif y < A[(j+1)] and A[j] <= y :
           ph_j = N/(2*np.pi)
 
 
