@@ -1,4 +1,6 @@
 from PointList import *
+from Triangle import *
+
 
 class TriangularMesh:
     def __init__(self, boundary : PointList, desired_triangle_count):
@@ -6,14 +8,15 @@ class TriangularMesh:
         self.m = desired_triangle_count
         self.mesh = []
         self.n = len(boundary.points)
-        
+        self.v_indexes = [] #the vertexes indices
+        self.mapping = [] #contains the mapping from I(v_indexes to R^3)
+        self.triangles  = []  #each triangle is 
         
 
     def compute_central_point(self):
         return self.boundary.average_point()
         
-        
-
+         
     def create_initial_subdivisions(self):
         #  Create initial subdivisions using the central point
         C = self.compute_central_point()
@@ -30,8 +33,6 @@ class TriangularMesh:
     def create_quadrilaterals(self):
         #split the outside quadrilaterals
         P = (self.create_initial_subdivisions())
-        # P.append(P[0])
-        # P = np.array(P)
         s = int(self.m/(2*self.n) - 1/2)
         for j in tqdm(range(s)) : 
             for i in range(self.n) :
@@ -60,17 +61,63 @@ class TriangularMesh:
 
 
 
-    def generate_mesh(self):
+    def generate_mesh_initial(self):
         self.create_quadrilaterals()
         self.split_quadrilaterals()
         self.further_subdivide()
         return self.mesh
 
 
-# # Usage example:
-# if __name__ == "__main__":
-#     boundary = [(x1, y1), (x2, y2), ...]  # Define the boundary vertices here
-#     desired_triangle_count = m  # Set the desired triangle count here
-#     mesh_generator = TriangularMesh(boundary, desired_triangle_count)
-#     mesh = mesh_generator.generate_mesh()
-#     print(mesh)
+    def canonic_representation(self):
+        K = np.array(self.mesh).reshape(-1,2)
+        K = [tuple(x) for x in K]
+        N = len(set(K))
+        self.v_indexes = [range(N)]
+        self.mapping = list(set(K))
+        for tri in self.mesh:
+            self.triangles.append([self.mapping.index(tuple(pt)) for pt in tri])
+
+
+    def area_3D(self,tr):
+        v = [self.mapping[tr[0]],self.mapping[tr[1]],self.mapping[tr[2]]]
+        return area_3D(v)
+
+
+    def N(self,i):
+        N = []
+        for tr in self.triangles :
+            if i in tr:
+                N += list(tr)
+        return list(set(N))
+
+    def S(self,i,j):
+        S = 0
+        for tr in self.triangles:
+            if (i in tr) and (j in tr):
+                S += area_3D(tr)
+        return S
+
+    def calcul_weights(self,i,j,k) : 
+
+
+
+
+
+        
+
+
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
