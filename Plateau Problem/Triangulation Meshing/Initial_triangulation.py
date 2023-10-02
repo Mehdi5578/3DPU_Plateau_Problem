@@ -1,5 +1,7 @@
 from PointList import *
 from Triangle import *
+from tqdm import tqdm
+from copy import *
 
 
 class TriangularMesh:
@@ -9,9 +11,31 @@ class TriangularMesh:
         self.mesh = []
         self.n = len(boundary.points)
         self.v_indexes = [] #the vertexes indices
-        self.mapping = [] #contains the mapping from I(v_indexes to R^3)
-        self.triangles  = []  #each triangle is 
-        
+        self.mapping = [] #contains the mapping from I(v_indexes) to R^3
+        self.triangles  = []  #each triangle is a tuple
+        self.inside_indexes  = []
+        self.N = {} #les indices des voisins 
+        self.N_vertexes = len(self.v_indexes) # the number of nodes in the meshing
+        self.w = np.empty((len(self.v_indexes),len(self.v_indexes)))
+        self.dict_vertexes = {} # contains the dict of all triangles associated to an index
+        self.edges = set()
+    
+    def add_points_to_boundary(self,N = 10):
+        "adding points to the boundary"
+        K = deepcopy(self.boundary.points)
+        R = []
+        for i in tqdm(range(len(self.boundary.points))):
+            
+            p1 = K[i-1]
+            p2 = K[i]
+            L = list(np.linspace(p1,p2,N+2))[1:-1]
+
+            R.append(p1)
+            R = R + L
+        self.boundary.points = R
+        self.n = len(self.boundary.points)
+
+
 
     def compute_central_point(self):
         return self.boundary.average_point()
@@ -63,19 +87,41 @@ class TriangularMesh:
 
     def generate_mesh_initial(self):
         self.create_quadrilaterals()
-        self.split_quadrilaterals()
         self.further_subdivide()
         return self.mesh
 
 
-    def canonic_representation(self):
+    def modify_N(self,i):
+        N = []
+        for tr in self.triangles :
+            if i in tr:
+                N += list(tr)
+        self.N[i] = list(set(N))
+
+
+    def canonic_representation_from_mesh(self):
         K = np.array(self.mesh).reshape(-1,2)
         K = [tuple(x) for x in K]
         N = len(set(K))
-        self.v_indexes = [range(N)]
+        self.v_indexes = list(range(N))
         self.mapping = list(set(K))
+        for j in self.v_indexes:
+            self.dict_vertexes[j] = []
+        self.triangles = []
         for tri in self.mesh:
-            self.triangles.append([self.mapping.index(tuple(pt)) for pt in tri])
+            triangle = [self.mapping.index(tuple(pt)) for pt in tri]
+            self.triangles.append(triangle)
+            self.dict_vertexes[triangle[0]].append(tuple(triangle))
+            self.dict_vertexes[triangle[1]].append(tuple(triangle))
+            self.dict_vertexes[triangle[2]].append(tuple(triangle))
+
+        for i in self.v_indexes:
+            self.modify_N(i)
+    
+    def tuple_mapping(self):
+        self.mapping = [tuple(k) for k in self.mapping]
+
+            
 
 
     def area_3D(self,tr):
@@ -83,21 +129,35 @@ class TriangularMesh:
         return area_3D(v)
 
 
-    def N(self,i):
+    def _N(self,i):
         N = []
         for tr in self.triangles :
             if i in tr:
                 N += list(tr)
         return list(set(N))
 
+
+
     def S(self,i,j):
         S = 0
-        for tr in self.triangles:
-            if (i in tr) and (j in tr):
-                S += area_3D(tr)
+        tr_i = set(self.dict_vertexes[i])
+        tr_j = set(self.dict_vertexes[j])
+        intersect = list(tr_i.intersection(tr_j))
+        for tr in intersect :
+            S+= self.area_3D(tr)
         return S
 
-    def calcul_weights(self,i,j,k) : 
+
+    def calcul_weights(self,i,j) :
+        S = 0
+        for k in self.N[i]:
+            S += self.S(i,k)
+        self.w[i,j] =  self.S(i,j)/S
+
+
+    
+
+
 
 
 

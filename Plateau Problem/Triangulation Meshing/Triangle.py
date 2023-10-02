@@ -13,16 +13,24 @@ def area_3D(vertices):
     ]
     return 0.5 * sum(x**2 for x in cross_product)**0.5
 
+def distance(point1, point2):
+    """Compute the Euclidean distance between two points."""
+    return np.linalg.norm(np.array(point1) - np.array(point2))
+
+def perimeter_3D(vertex1, vertex2, vertex3):
+    """Compute the perimeter of a triangle given its vertices."""
+    return distance(vertex1, vertex2) + distance(vertex2, vertex3) + distance(vertex1, vertex3)
+
 def can_flip(edge, mesh):
-    triangles = [triangle for triangle in mesh if set(edge).issubset(set(triangle.vertices))]
+    triangles = [triangle for triangle in mesh if set(edge).issubset(set(triangle))]
     return len(triangles) == 2
 
 def flip_edge(edge, mesh):
     triangles = [triangle for triangle in mesh if set(edge).issubset(set(triangle.vertices))]
     t1, t2 = triangles
     opposite_vertices = [v for v in t1.vertices if v not in edge] + [v for v in t2.vertices if v not in edge]
-    new_triangles = [Triangle(edge[0], opposite_vertices[0], opposite_vertices[1]), 
-                     Triangle(edge[1], opposite_vertices[0], opposite_vertices[1])]
+    new_triangles = [[edge[0], opposite_vertices[0], opposite_vertices[1]], 
+                     [edge[1], opposite_vertices[0], opposite_vertices[1]]]
     for triangle in triangles:
         mesh.remove(triangle)
     mesh.extend(new_triangles)
@@ -31,7 +39,7 @@ def lawson_flip(mesh):
     edges = set()
     for triangle in mesh:
         for i in range(3):
-            edge = tuple(sorted([triangle.vertices[i], triangle.vertices[(i+1)%3]]))
+            edge = tuple(sorted([tuple(triangle[i]), tuple(triangle[(i+1)%3])]))
             edges.add(edge)
     for edge in edges:
         if can_flip(edge, mesh):
