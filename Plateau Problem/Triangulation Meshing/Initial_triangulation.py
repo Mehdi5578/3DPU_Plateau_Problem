@@ -100,7 +100,7 @@ class TriangularMesh:
 
 
     def canonic_representation_from_mesh(self):
-        K = np.array(self.mesh).reshape(-1,2)
+        K = np.array(self.mesh).reshape(-1,3)
         K = [tuple(x) for x in K]
         N = len(set(K))
         self.v_indexes = list(range(N))
@@ -155,11 +155,54 @@ class TriangularMesh:
         self.w[i,j] =  self.S(i,j)/S
 
 
+
+
+    def cotangent_angle(self, p1, p2, p3):
+        """Compute the cotangent of the angle between p1-p2 and p1-p3."""
+        v1 = np.array(self.mapping[p2]) - np.array(self.mapping[p1])
+        v2 = np.array(self.mapping[p3]) - np.array(self.mapping[p1])
+        dot_product = np.dot(v1, v2)
+        cross_product_norm = np.linalg.norm(np.cross(v1, v2))
+        return dot_product / cross_product_norm
+
+    def adjacent_area(self, vertex):
+        """Compute the total area of triangles adjacent to the vertex."""
+        area = 0
     
+        triangles = self.dict_vertexes[vertex]
+        for tri in triangles:
+            area += self.area_3D(tri)
+    
+        return area
 
 
+    def compute_mean_curvature(self):
+        """Compute the mean curvature for each vertex in the mesh."""
+        vertex_curvatures = dict()
+        for i in self.inside_indexes:
+            A_i = self.adjacent_area(i)
+            curvature_sum = np.zeros(3)
+            
+            for j in self.N[i]:
+                tr_i = set(self.dict_vertexes[i])
+                tr_j = set(self.dict_vertexes[j])
+                t1,t2 = list(tr_i.intersection(tr_j))
 
+                alpha = [r for r in t1 if r not in (i,j)][0]
+                beta = [r for r in t2 if r not in (i,j)][0]
 
+                cot_alpha = self.cotangent_angle(alpha,i,j)
+                cot_beta = self.cotangent_angle(beta,i,j)
+
+                p_i = np.array(self.mapping[i]) 
+                p_j = np.array(self.mapping[j]) 
+
+                curvature_sum += (cot_alpha + cot_beta) *(p_j - p_i)
+
+            
+            h_i = np.linalg.norm(curvature_sum) / (4 * A_i)
+            vertex_curvatures[i] = h_i
+        return vertex_curvatures
 
 
 
