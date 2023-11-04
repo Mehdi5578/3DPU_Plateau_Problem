@@ -111,11 +111,10 @@ class TriangularMesh:
         self.triangles = []
         for tri in self.mesh:
             triangle = [self.mapping.index(tuple(pt)) for pt in tri]
-            if len(tuple(set(triangle))) == 2:
-                self.triangles.append(tuple(triangle))
-                self.dict_vertexes[triangle[0]].append(tuple(triangle))
-                self.dict_vertexes[triangle[1]].append(tuple(triangle))
-                self.dict_vertexes[triangle[2]].append(tuple(triangle))
+            self.triangles.append(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[0]].append(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[1]].append(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[2]].append(tuple(sorted(triangle)))
 
         for i in self.v_indexes:
             self.modify_N(i)
@@ -235,6 +234,8 @@ class TriangularMesh:
     def compute_mean_curvature(self):
         """Compute the mean curvature for each vertex in the mesh."""
         vertex_curvatures = dict()
+
+
         for i in self.inside_indexes:
             A_i = self.voronoi_area(i)
             curvature_sum = np.zeros(3)
