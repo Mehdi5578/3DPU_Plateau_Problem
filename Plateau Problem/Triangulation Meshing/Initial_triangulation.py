@@ -63,7 +63,8 @@ class TriangularMesh:
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j,i+1]])
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j+1,i]])
         
-        
+    def clean_triangles(self):
+        pass
 
 
     def split_quadrilateral(self):
@@ -110,10 +111,11 @@ class TriangularMesh:
         self.triangles = []
         for tri in self.mesh:
             triangle = [self.mapping.index(tuple(pt)) for pt in tri]
-            self.triangles.append(triangle)
-            self.dict_vertexes[triangle[0]].append(tuple(triangle))
-            self.dict_vertexes[triangle[1]].append(tuple(triangle))
-            self.dict_vertexes[triangle[2]].append(tuple(triangle))
+            if len(tuple(set(triangle))) == 2:
+                self.triangles.append(tuple(triangle))
+                self.dict_vertexes[triangle[0]].append(tuple(triangle))
+                self.dict_vertexes[triangle[1]].append(tuple(triangle))
+                self.dict_vertexes[triangle[2]].append(tuple(triangle))
 
         for i in self.v_indexes:
             self.modify_N(i)
@@ -165,22 +167,76 @@ class TriangularMesh:
         cross_product_norm = np.linalg.norm(np.cross(v1, v2))
         return dot_product / cross_product_norm
 
-    def adjacent_area(self, vertex):
+
+    def voronoi(self,p1,p2,p3):
+        """Compute vornoi area at point p"""
+
+        p = self.mapping[p1]
+        q = self.mapping[p2]
+        r = self.mapping[p3]
+        pr = np.linalg.norm(p-r)**2
+        pq = np.linalg.norm(p-q)**2
+        cot_q = self.cotangent_angle(q,r,p)
+        cot_r = self.cotangent_angle(r,p,q)
+    
+        return (pr*cot_q + pq*cot_r)/8
+    
+
+    def is_obtuse(self,p1, p2,p3):
+        v1 = self.mapping[p1]
+        v2 = self.mapping[p2]
+        v3 = self.mapping[p3]
+        # Compute squared lengths of the sides
+        a2 = (v2[0]-v3[0])**2 + (v2[1]-v3[1])**2 + (v2[2]-v3[2])**2
+        b2 = (v1[0]-v3[0])**2 + (v1[1]-v3[1])**2 + (v1[2]-v3[2])**2
+        c2 = (v1[0]-v2[0])**2 + (v1[1]-v2[1])**2 + (v1[2]-v2[2])**2
+
+        # Check if any angle is obtuse
+        return a2 > b2 + c2 or b2 > a2 + c2 or c2 > a2 + b2
+
+
+    def obtuse_at_point(self,p1, p2,p3):
+        v1 = self.mapping[p1]
+        v2 = self.mapping[p2]
+        v3 = self.mapping[p3]
+        # Compute squared lengths of the sides
+        a2 = (v2[0]-v3[0])**2 + (v2[1]-v3[1])**2 + (v2[2]-v3[2])**2
+        b2 = (v1[0]-v3[0])**2 + (v1[1]-v3[1])**2 + (v1[2]-v3[2])**2
+        c2 = (v1[0]-v2[0])**2 + (v1[1]-v2[1])**2 + (v1[2]-v2[2])**2
+
+        # Check if any angle is obtuse
+        return a2 > b2 + c2 
+    
+
+    def mixed_area(self,v1,v2,v3):
+        " calculate the voronoi mixed area at v1 "
+        if not self.is_obtuse(v1,v2,v3): # checks that the triangle is not obtuse
+            return self.voronoi(v1,v2,v3)
+        else:
+            tr = (v1,v2,v3)
+            if self.obtuse_at_point(v1,v2,v3):
+                
+                return self.area_3D(tr)/2
+            else:
+                return self.area_3D(tr)/4
+
+    def voronoi_area(self, vertex):
         """Compute the total area of triangles adjacent to the vertex."""
         area = 0
     
         triangles = self.dict_vertexes[vertex]
         for tri in triangles:
-            area += self.area_3D(tri)
-    
+            v1 = vertex
+            v2 = [a for a in tri if a != vertex][0]
+            v3 = [a for a in tri if a != vertex][1]
+            area += self.mixed_area(v1,v2,v3)
         return area
-
 
     def compute_mean_curvature(self):
         """Compute the mean curvature for each vertex in the mesh."""
         vertex_curvatures = dict()
         for i in self.inside_indexes:
-            A_i = self.adjacent_area(i)
+            A_i = self.voronoi_area(i)
             curvature_sum = np.zeros(3)
             
             for j in self.N[i]:
