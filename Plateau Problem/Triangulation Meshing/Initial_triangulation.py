@@ -115,10 +115,10 @@ class TriangularMesh:
         self.triangles = []
         for tri in self.mesh:
             triangle = [self.mapping.index(tuple(pt)) for pt in tri]
-            self.triangles.append(triangle)
-            self.dict_vertexes[triangle[0]].append(tuple(triangle))
-            self.dict_vertexes[triangle[1]].append(tuple(triangle))
-            self.dict_vertexes[triangle[2]].append(tuple(triangle))
+            self.triangles.append(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[0]].append(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[1]].append(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[2]].append(tuple(sorted(triangle)))
 
         for i in self.v_indexes:
             self.modify_N(i)
@@ -146,7 +146,13 @@ class TriangularMesh:
             if i in tr:
                 N += list(tr)
         return list(set(N))
-    
+
+
+
+
+
+
+
 
     def cotangent_angle(self, p1, p2, p3):
         """Compute the cotangent of the angle between p1-p2 and p1-p3."""
@@ -155,7 +161,6 @@ class TriangularMesh:
         dot_product = np.dot(v1, v2)
         cross_product_norm = np.linalg.norm(np.cross(v1, v2))
         return dot_product / cross_product_norm
-
 
     def voronoi(self,p1,p2,p3):
         """Compute vornoi area at point p"""
