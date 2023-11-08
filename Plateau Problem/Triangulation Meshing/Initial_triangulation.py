@@ -19,7 +19,9 @@ class TriangularMesh:
         self.w = np.empty((len(self.v_indexes),len(self.v_indexes)))
         self.dict_vertexes = {} # contains the dict of all triangles associated to an index
         self.edges = set()
+        self.vertex_curvatures = dict()
     
+
     def add_points_to_boundary(self,N = 10):
         "adding points to the boundary"
         K = deepcopy(self.boundary.points)
@@ -56,15 +58,14 @@ class TriangularMesh:
 
     def create_quadrilaterals(self):
         #split the outside quadrilaterals
-        P = (self.create_initial_subdivisions())
+        P = self.create_initial_subdivisions()
         s = int(self.m/(2*self.n) - 1/2)
         for j in tqdm(range(s)) : 
             for i in range(self.n) :
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j,i+1]])
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j+1,i]])
         
-    def clean_triangles(self):
-        pass
+        
 
 
     def split_quadrilateral(self):
@@ -88,7 +89,7 @@ class TriangularMesh:
 
     def generate_mesh_initial(self):
         self.create_quadrilaterals()
-        self.further_subdivide()
+        # self.further_subdivide()
         return self.mesh
 
 
@@ -98,12 +99,15 @@ class TriangularMesh:
             if i in tr:
                 N += list(tr)
         self.N[i] = list(set(N))
+        self.N[i].remove(i)
 
 
     def canonic_representation_from_mesh(self):
         K = np.array(self.mesh).reshape(-1,3)
         K = [tuple(x) for x in K]
         N = len(set(K))
+        self.N_vertexes = N
+        self.w = np.empty((N,N))
         self.v_indexes = list(range(N))
         self.mapping = list(set(K))
         for j in self.v_indexes:
@@ -111,19 +115,25 @@ class TriangularMesh:
         self.triangles = []
         for tri in self.mesh:
             triangle = [self.mapping.index(tuple(pt)) for pt in tri]
-            self.triangles.append(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[0]].append(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[1]].append(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[2]].append(tuple(sorted(triangle)))
+            self.triangles.append(triangle)
+            self.dict_vertexes[triangle[0]].append(tuple(triangle))
+            self.dict_vertexes[triangle[1]].append(tuple(triangle))
+            self.dict_vertexes[triangle[2]].append(tuple(triangle))
 
         for i in self.v_indexes:
             self.modify_N(i)
+
+        Outside = [tuple(k) for k in self.boundary.points]
+        Outside_vertexes = [self.mapping.index((pt)) for pt in Outside]
+        self.inside_indexes = list(set(self.v_indexes) - set(Outside_vertexes))
+
     
     def tuple_mapping(self):
         self.mapping = [tuple(k) for k in self.mapping]
 
             
-
+    def clean_triangles(self):
+        pass
 
     def area_3D(self,tr):
         v = [self.mapping[tr[0]],self.mapping[tr[1]],self.mapping[tr[2]]]
@@ -136,27 +146,7 @@ class TriangularMesh:
             if i in tr:
                 N += list(tr)
         return list(set(N))
-
-
-
-    def S(self,i,j):
-        S = 0
-        tr_i = set(self.dict_vertexes[i])
-        tr_j = set(self.dict_vertexes[j])
-        intersect = list(tr_i.intersection(tr_j))
-        for tr in intersect :
-            S+= self.area_3D(tr)
-        return S
-
-
-    def calcul_weights(self,i,j) :
-        S = 0
-        for k in self.N[i]:
-            S += self.S(i,k)
-        self.w[i,j] =  self.S(i,j)/S
-
-
-
+    
 
     def cotangent_angle(self, p1, p2, p3):
         """Compute the cotangent of the angle between p1-p2 and p1-p3."""
@@ -170,13 +160,13 @@ class TriangularMesh:
     def voronoi(self,p1,p2,p3):
         """Compute vornoi area at point p"""
 
-        p = self.mapping[p1]
-        q = self.mapping[p2]
-        r = self.mapping[p3]
+        p = np.array(self.mapping[p1])
+        q = np.array(self.mapping[p2])
+        r = np.array(self.mapping[p3])
         pr = np.linalg.norm(p-r)**2
         pq = np.linalg.norm(p-q)**2
-        cot_q = self.cotangent_angle(q,r,p)
-        cot_r = self.cotangent_angle(r,p,q)
+        cot_q = self.cotangent_angle(p2,p3,p1)
+        cot_r = self.cotangent_angle(p3,p1,p2)
     
         return (pr*cot_q + pq*cot_r)/8
     
@@ -228,56 +218,48 @@ class TriangularMesh:
             v1 = vertex
             v2 = [a for a in tri if a != vertex][0]
             v3 = [a for a in tri if a != vertex][1]
-            area += self.mixed_area(v1,v2,v3)
+            tr = (v1,v2,v3)
+            area += self.area_3D(tr)
         return area
+
 
     def compute_mean_curvature(self):
         """Compute the mean curvature for each vertex in the mesh."""
-        vertex_curvatures = dict()
-
-
+        self.vertex_curvatures = dict()
         for i in self.inside_indexes:
-            A_i = self.voronoi_area(i)
+
+            A_i = self.voronoi_area(i) #We do it with simple area
             curvature_sum = np.zeros(3)
-            
+            B_i  = 0
             for j in self.N[i]:
+                
                 tr_i = set(self.dict_vertexes[i])
                 tr_j = set(self.dict_vertexes[j])
-                t1,t2 = list(tr_i.intersection(tr_j))
+
+                t1= list(tr_i.intersection(tr_j))[0]
+                t2= list(tr_i.intersection(tr_j))[1]
+                
 
                 alpha = [r for r in t1 if r not in (i,j)][0]
                 beta = [r for r in t2 if r not in (i,j)][0]
 
                 cot_alpha = self.cotangent_angle(alpha,i,j)
-                cot_beta = self.cotangent_angle(beta,i,j)
+                cot_beta = self.cotangent_angle(beta,j,i)
 
                 p_i = np.array(self.mapping[i]) 
                 p_j = np.array(self.mapping[j]) 
 
                 curvature_sum += (cot_alpha + cot_beta) *(p_j - p_i)
+                
+                if A_i < 0:
+                    print(A_i,i)
+                    raise Exception("Error this area si negative !!!")
+                    
 
             
             h_i = np.linalg.norm(curvature_sum) / (4 * A_i)
-            vertex_curvatures[i] = h_i
-        return vertex_curvatures
-
-
-
+            self.vertex_curvatures[h_i] = i
+        A = np.array(list(self.vertex_curvatures.keys()))
         
-
-
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
+        return np.max(A)
 
