@@ -1,5 +1,5 @@
 from Flairing_Laplace import *
-from copy import *
+import copy
 
 class Edge_Flipping(Updating_Laplace):
     def __init__(self, boundary : PointList, desired_triangle_count):
