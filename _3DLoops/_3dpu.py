@@ -5,6 +5,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
 import random
+import csv
+import os
 
 from typing import Union, Optional
 from numpy.typing import NDArray
@@ -223,75 +225,79 @@ def join_open_loops(ploop: Loop, nloop: Loop) -> Loop:
     
     return loop
 
-def residual_loops(loops,marker,psi: NDArray) -> list[FlaggedLoop]:
+
+def save_loops_to_csv(loops, filename):
+    # if not os.path.exists(filename):
+    #     os.makedirs(filename)
+    with open(filename, 'a', newline='') as csvfile:  # 'a' for append mode
+        csvwriter = csv.writer(csvfile)
+        for loop in loops:
+            # Convert the loop to a format suitable for CSV writing
+            # This example assumes you want to write the 'pos' attribute of each residual
+            loop_data = [[res.res.ax, res.res.ori] + list(res.res.pos) for res in loop.loop]
+            csvwriter.writerows(loop_data)
+
+
+def residual_loops(loops, marker, psi: NDArray,csv_filename) -> list[FlaggedLoop]:
     # Store the shape of psi.
+    print("begining the creation of the loops")
     shape = psi.shape
     # Store the list of all residuals.
     res = []
     for a in range(dim):
         res.append(residuals(psi, a))
-
-    # A dict to store the mark of the residuals:
-    # -1: unprocessed
-    # 0: in process
-    # 1: processed
-    
+    print("unprocessing of the residuals started")
     unprocess_all(res, marker)
+    print("unprocessing of the residuals ended")
+    # Total number of residuals that need processing.
 
-    # A loop will have (flag, items):
-    # flag: 0 if the loop is open and
-    # 1 if it is closed.
-    # items contains the list of residuals
-    # in the loop.
-    
+    total_residuals = sum(r.size for r in res)
+    print((total_residuals))
+    processed_residuals = 0
+    last_reported_progress = -1
 
     # Loop until all the residual has been processed
     while True:
         # Look for unprocessed residual.
         r = unprocessed_residual(marker)
-        # print(r)
-
-        # If all residuals were processed.
         if not r:
-            break
-        # print("on cherche la loop avec serach loop")
+            break  # Exit if all residuals have been processed.
+
         flagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, False)
         loop = flagged_loop.loop
-        # print("on a trouvé une loop")
-        # If the loop is closed.
+
         if flagged_loop.closed:
             loops.append(flagged_loop)
-        else: # The loop is open.
-            # Unmark the loop.
+            processed_residuals += len(loop)
+        else:
             mark_loop(loop, marker, -1)
-
-            # Get the reversed loop.
             rflagged_loop = search_loop(SpinnedResidual(1, r), shape, marker, True)
-            
             rloop = list(reversed(rflagged_loop.loop))
-
-            # If the reversed loop is closed.
             if rflagged_loop.closed:
                 loops.append(FlaggedLoop(True, rloop))
-                
+                processed_residuals += len(rloop)
             else:
-                # Unmark the reversed loop.
                 mark_loop(rloop, marker, -1)
-
-                # Join the two loops.
-                # print(rloop)
-                # print(loop)
                 loop = join_open_loops(rloop, loop)
-                # print("joining loops")
-                # Mark the loop.
                 loop_res = [pos.res for pos in loop]
-                #vu que la demi loop est non marquée, rloop peut avoir des élements de loop.
                 if len(set(loop_res)) == len(loop_res):
                     mark_loop(loop, marker, 1)
                     loops.append(FlaggedLoop(False, loop))
                 else:
-                    mark_loop(loop,marker,-1)
+                    mark_loop(loop, marker, -1)
+                processed_residuals += len(loop)
+
+        # Calculate and print the progress if there is at least a 1% advancement.
+        progress = (processed_residuals / total_residuals) * 100
+        if progress >= last_reported_progress + 0.01:
+            print(f"Progress: {progress:.2f}% complete")
+            last_reported_progress = progress
+            save_loops_to_csv(loops,  csv_filename)
+            loops.clear() 
+
+    
     return loops
+
 
 if __name__ == '__main__':
     pass
