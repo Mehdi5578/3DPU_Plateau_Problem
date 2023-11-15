@@ -1,0 +1,8 @@
+#!/lustre03/project/6064945/mehdii/3dPU/3dPU/virtual_3dpu/bin/python
+# -*- coding: utf-8 -*-
+import re
+import sys
+from nibabel.cmdline.ls import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())

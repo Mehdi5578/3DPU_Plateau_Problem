@@ -7,7 +7,7 @@ import numpy as np
 import random
 import csv
 import os
-
+import pickle
 from typing import Union, Optional
 from numpy.typing import NDArray
 
@@ -238,8 +238,9 @@ def save_loops_to_csv(loops, filename):
             csvwriter.writerows(loop_data)
 
 
-def residual_loops(loops, marker, psi: NDArray,csv_filename) -> list[FlaggedLoop]:
+def residual_loops( marker, psi: NDArray,csv_filename) -> list[FlaggedLoop]:
     # Store the shape of psi.
+    loops = []
     print("begining the creation of the loops")
     shape = psi.shape
     # Store the list of all residuals.
@@ -292,10 +293,11 @@ def residual_loops(loops, marker, psi: NDArray,csv_filename) -> list[FlaggedLoop
         if progress >= last_reported_progress + 0.01:
             print(f"Progress: {progress:.2f}% complete")
             last_reported_progress = progress
-            save_loops_to_csv(loops,  csv_filename)
-            loops.clear() 
+            # save_loops_to_csv(loops,  csv_filename)
+            with open(csv_filename, 'wb') as f:
+                pickle.dump(loops, f)
 
-    
+    print("the detection of the loops")
     return loops
 
 

@@ -10,9 +10,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # Go up one level to the '3dPU' directory
 parent_dir = os.path.dirname(current_dir)
 # Add the '3dPU' directory to the sys.path
-sys.path.append(parent_dir)
-os.chdir(r"C:\Users\oudao\OneDrive\Documents\Montréal 4A\Les études\Chair AI-SCALE")
-# Now your working directory is changed, and you can open the file with a relative path
+# sys.path.append(parent_dir)
+# os.chdir(r"C:\Users\oudao\OneDrive\Documents\Montréal 4A\Les études\Chair AI-SCALE")
+# # Now your working directory is changed, and you can open the file with a relative path
 
 
 from _3DLoops._3dpu import *
@@ -24,7 +24,7 @@ Initial_Path = sys.path[-1]
 
 # chemin = paths["Paths"]["phase"].decode('utf-8').encode('cp1252')
 
-chemin = r"C:\Users\oudao\OneDrive\Documents\Montréal 4A\Les études\Chair AI-SCALE\ph.nii"
+chemin = r"/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Data/ph_1.nii"
 
 t = 1
 
@@ -38,7 +38,9 @@ if __name__ == '__main__':
     deb = time.time()
     marker2 = {}
     loops = []
-    l = residual_loops(loops,marker2,phase_data,r'C:\Users\oudao\OneDrive\Documents\Montréal 4A\Les études\Chair_SCALE_AI\3dPU\Created_Loops\created_loops.csv')
+    l = residual_loops(marker2,phase_data,r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/created_loops_1.pkl')
+    with open(r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/marker_dict.pkl', 'wb') as f:
+       pickle.dump(marker2, f)
     fin = time.time()
     print(fin-deb)
 

@@ -88,9 +88,51 @@ class Edge_Flipping(Updating_Laplace):
                     self.L[edge] = (new_area -  old_area, old_tr, new_tr,edge)
                     if len(list(self.edges)) < ll:
                         print(edge,edge1)
+
+
                 
+    def C_inversed(self,h):
+        "Computes the inversed C matrix of index h"
+        identity_matrix = np.identity(3)
+        C = 0
 
+        for tr in self.dict_vertexes[h]:
+            
+            j,k = tuple([a for a in tr if a != h ])
+            P_j = np.array(self.mapping[j])
+            P_k = np.array(self.mapping[k])
+            P_h = np.array(self.mapping[h])
 
-        
+            vect_jk = (P_k - P_j)
+            vect_jh = (P_h - P_j)
 
+            numerator = (np.linalg.norm(vect_jk)**2)*identity_matrix  - np.outer(vect_jk, vect_jk.T)
+            cross_product = np.cross(vect_jk, vect_jh)
+            C += numerator / np.linalg.norm(cross_product)
+        return np.linalg.inv(C)
+    
+    def update_mapping_area(self,h):
+        "Update the position of h to minimze the said area"
+        P_bar_h = np.zeros(3)
+        for tr in self.dict_vertexes[h]:
+            j,k = tuple([a for a in tr if a != h ])
+            P_j = np.array(self.mapping[j])
+            P_k = np.array(self.mapping[k])
+            P_h = np.array(self.mapping[h])
+
+            vect_jk = P_k - P_j
+            vect_jh = P_h - P_j
+
+            dot_product_jk_j = np.dot(vect_jk, P_j)  # Dot product
+            cross_product_jk_jh = np.cross(vect_jk, vect_jh)  # Cross product
+
+            # The term inside the summation
+            term = (np.dot(dot_product_jk_j,vect_jk) - np.dot(np.linalg.norm(vect_jk)**2 , P_j)) / np.linalg.norm(cross_product_jk_jh)
+
+            # Summation
+            P_bar_h += term
+
+        # Multiply with the inverse of C
+        P_bar_h = -np.dot(self.C_inversed(h), P_bar_h)
+        self.mapping[h] =  P_bar_h
 
