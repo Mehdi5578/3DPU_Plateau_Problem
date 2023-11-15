@@ -1,8 +1,8 @@
-from Initial_triangulation import TriangularMesh
-from PointList import *
+from Plateau_Problem.Triangulation_Meshing.Initial_triangulation import TriangularMesh
+from Plateau_Problem.Triangulation_Meshing.PointList import *
 from tqdm import tqdm
-from Flairing_Laplace import *
-from Final_surface import *
+from Plateau_Problem.Triangulation_Meshing.Flairing_Laplace import *
+from Plateau_Problem.Triangulation_Meshing.Final_surface import *
 
 class Final_minimization(Edge_Flipping):
     def __init__(self, boundary : PointList, desired_triangle_count):
