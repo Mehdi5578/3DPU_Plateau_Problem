@@ -1,4 +1,4 @@
-from PointList import *
+from Plateau_Problem.Triangulation_Meshing.PointList import *
 
 
 

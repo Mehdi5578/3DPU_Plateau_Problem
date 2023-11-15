@@ -1,4 +1,4 @@
-from Flairing_Laplace import *
+from Plateau_Problem.Triangulation_Meshing.Flairing_Laplace import *
 import copy
 
 class Edge_Flipping(Updating_Laplace):

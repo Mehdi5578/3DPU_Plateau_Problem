@@ -1,5 +1,5 @@
-from Initial_triangulation import TriangularMesh
-from PointList import *
+from Plateau_Problem.Triangulation_Meshing.Initial_triangulation import TriangularMesh
+from Plateau_Problem.Triangulation_Meshing.PointList import *
 from tqdm import tqdm
 import math
 

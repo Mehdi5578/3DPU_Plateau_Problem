@@ -1,5 +1,5 @@
-from PointList import *
-from Triangle import *
+from Plateau_Problem.Triangulation_Meshing.PointList import *
+from Plateau_Problem.Triangulation_Meshing.Triangle import *
 from tqdm import tqdm
 from copy import *
 
