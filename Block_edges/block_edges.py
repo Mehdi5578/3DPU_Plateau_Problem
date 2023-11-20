@@ -31,7 +31,6 @@ def intersection(Tr,P,Q):
     a,a_p = tuple(list(B-A)[:ind]+list(B-A)[ind+1:])
     b,b_p = tuple(list(P-Q)[:ind]+list(P-Q)[ind+1:])
     c,c_p = tuple(list(P-A)[:ind]+list(P-A)[ind+1:])
-    print((a*b_p - a_p*b))
     t = (a*c_p - a_p*c)/(a*b_p - a_p*b)
     lbda = (c*b_p - c_p*b)/(a*b_p - a_p*b)
     assert np.isclose(P +t*(Q-P), A+lbda*(B-A)).all() ,(P +t*(Q-P), A+lbda*(B-A))
@@ -56,7 +55,6 @@ def traverse(Tr,P,Q):
     Q_proj = projection(Tr,Q)
     n_P = (P - P_proj)
     n_Q = (Q - Q_proj)
-    print(np.dot(n_P,n_Q))
     if np.dot(n_P,n_Q) > 0 :
         return False
     Z = intersection(Tr,P,Q)
@@ -72,15 +70,16 @@ class Block_edges():
         self.mapping = mapping
         self.blocked_edges = [] # contains the blocked edges as pairs of (P,Q) P and Q being two points.
 
-    def detect_edges(self,Tr):   
+    def detect_edges(self,tr):   
         
         """Gives the edges in the 3D grid 
         that go through a triangle tr"""
 
-        x_coords = [self.mapping[point[0]] for point in Tr]
-        y_coords = [self.mapping[point[1]] for point in Tr]
-        z_coords = [self.mapping[point[2]] for point in Tr]
-
+        x_coords = [self.mapping[point][0] for point in tr]
+        y_coords = [self.mapping[point][1] for point in tr]
+        z_coords = [self.mapping[point][2] for point in tr]
+        
+        Tr = [np.array(self.mapping[pt]) for pt in tr]  
         # Calculate min and max for each dimension with integer bounds
         x_min = math.floor(min(x_coords))
         y_min = math.floor(min(y_coords))
@@ -100,7 +99,8 @@ class Block_edges():
                             self.blocked_edges.append((P,Q))
                     # Add edges parallel to the y-axis
                     if y < y_max:
-                        P,Q = np.array(((x, y, z)), np.array((x, y + 1, z)))
+                        P,Q = np.array((x, y, z)), np.array((x, y + 1, z))
+                        
                         if traverse(Tr,P,Q):
                             self.blocked_edges.append((P,Q))
                     # Add edges parallel to the z-axis
@@ -113,6 +113,7 @@ class Block_edges():
     def block_all_the_edges(self):
         for tr in tqdm(self.triangles):
             self.detect_edges(tr)
+
 
 
     

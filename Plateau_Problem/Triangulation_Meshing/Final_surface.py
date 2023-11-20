@@ -136,3 +136,9 @@ class Edge_Flipping(Updating_Laplace):
         P_bar_h = -np.dot(self.C_inversed(h), P_bar_h)
         self.mapping[h] =  P_bar_h
 
+
+if __name__ == "__main__":
+    # Code here will only run when the file is executed directly,
+    # not when it is imported as a module.
+    print("Executed when invoked directly")
+
