@@ -24,7 +24,7 @@ Initial_Path = sys.path[-1]
 
 # chemin = paths["Paths"]["phase"].decode('utf-8').encode('cp1252')
 
-chemin = r"/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Data/ph_1.nii"
+chemin = r"/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Data/artificial_data/data_ball_wrapped.pkl"
 
 t = 1
 
@@ -32,15 +32,17 @@ print(chemin)
 
 if __name__ == '__main__':
     print("begining the data extraction")
-    phase_image = nb.load(chemin)
-    phase_data = phase_image.get_fdata()[:,:,:,t] # type: ignore
+   #  phase_image = nb.load(chemin)
+   #  phase_data = phase_image.get_fdata()[:,:,:,t] # type: ignore
+    with open(r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Data/artificial_data/data_ball_wrapped.pkl', 'rb') as file:
+       phase_data = pickle.load (file)
     print("data extracted")
     deb = time.time()
     marker2 = {}
     loops = []
-    l = residual_loops(marker2,phase_data,r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/created_loops_1.pkl')
-    with open(r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/marker_dict.pkl', 'wb') as f:
-       pickle.dump(marker2, f)
+    l = residual_loops(marker2,phase_data,r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/created_loops_artificial.pkl')
+    with open(r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/created_loops_artificial.pkl', 'wb') as f:
+       pickle.dump(l, f)
     fin = time.time()
     print(fin-deb)
 

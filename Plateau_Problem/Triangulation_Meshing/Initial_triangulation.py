@@ -26,7 +26,7 @@ class TriangularMesh:
         "adding points to the boundary"
         K = deepcopy(self.boundary.points)
         R = []
-        for i in tqdm(range(len(self.boundary.points))):
+        for i in (range(len(self.boundary.points))):
             
             p1 = K[i-1]
             p2 = K[i]
@@ -54,13 +54,14 @@ class TriangularMesh:
             P.append(P_j)
         
         return np.array(P)
+    
         
 
     def create_quadrilaterals(self):
         #split the outside quadrilaterals
         P = self.create_initial_subdivisions()
         s = int(self.m/(2*self.n) - 1/2)
-        for j in tqdm(range(s)) : 
+        for j in (range(s)) : 
             for i in range(self.n) :
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j,i+1]])
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j+1,i]])
@@ -71,7 +72,7 @@ class TriangularMesh:
     def split_quadrilateral(self):
         C = self.compute_central_point()
         P = self.create_initial_subdivisions()
-        for i in tqdm(range(self.n)) :
+        for i in (range(self.n)) :
             self.mesh.append([C,P[-1,i],P[-1,i+1]])
 
     def further_subdivide(self):
@@ -221,6 +222,7 @@ class TriangularMesh:
         triangles = self.dict_vertexes[vertex]
         for tri in triangles:
             v1 = vertex
+            assert (len([a for a in tri if a != vertex]) == 2), vertex
             v2 = [a for a in tri if a != vertex][0]
             v3 = [a for a in tri if a != vertex][1]
             tr = (v1,v2,v3)
