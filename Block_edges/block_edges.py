@@ -24,17 +24,25 @@ def intersection(Tr,P,Q):
     "determine l'intersection entre PQ et le plan du triangle Tr "
     A = projection(Tr,P)
     B = projection(Tr,Q)
+    if (A == B).all():
+        return A
     # on cherche l'intersectionn entre BA et PQ
-    ind = 2
-    if 0 in P-Q :
-        ind = list(P-Q).index(0)
-    a,a_p = tuple(list(B-A)[:ind]+list(B-A)[ind+1:])
-    b,b_p = tuple(list(P-Q)[:ind]+list(P-Q)[ind+1:])
-    c,c_p = tuple(list(P-A)[:ind]+list(P-A)[ind+1:])
-    t = (a*c_p - a_p*c)/(a*b_p - a_p*b)
-    lbda = (c*b_p - c_p*b)/(a*b_p - a_p*b)
-    assert np.isclose(P +t*(Q-P), A+lbda*(B-A)).all() ,(P +t*(Q-P), A+lbda*(B-A))
-    return P +t*(Q-P)
+    else:
+        ind = 2
+        if 0 in P-Q :
+            ind = np.where(P-Q == 0)[0][0]
+        a,a_p = tuple(list(B-A)[:ind]+list(B-A)[ind+1:])
+        b,b_p = tuple(list(P-Q)[:ind]+list(P-Q)[ind+1:])
+        c,c_p = tuple(list(P-A)[:ind]+list(P-A)[ind+1:])
+        if (a*b_p - a_p*b) == 0:
+            ind = np.where(P-Q == 0)[0][1]
+        a,a_p = tuple(list(B-A)[:ind]+list(B-A)[ind+1:])
+        b,b_p = tuple(list(P-Q)[:ind]+list(P-Q)[ind+1:])
+        c,c_p = tuple(list(P-A)[:ind]+list(P-A)[ind+1:])
+        t = (a*c_p - a_p*c)/(a*b_p - a_p*b)
+        lbda = (c*b_p - c_p*b)/(a*b_p - a_p*b)
+        assert np.isclose(P +t*(Q-P), A+lbda*(B-A)).all() ,("Tr",Tr,P +t*(Q-P), A+lbda*(B-A),"P",P,"Q",Q,"A",A,"B",B)
+        return P +t*(Q-P)
 
 
 def is_inside(Tr,P): 
@@ -79,7 +87,10 @@ class Block_edges():
         y_coords = [self.mapping[point][1] for point in tr]
         z_coords = [self.mapping[point][2] for point in tr]
         
-        Tr = [np.array(self.mapping[pt]) for pt in tr]  
+        Tr = [np.array(self.mapping[pt]) for pt in tr]
+        if  (np.cross(Tr[0] - Tr[1], Tr[0] - Tr[2] )==0).all():
+            print('yes')
+            return None
         # Calculate min and max for each dimension with integer bounds
         x_min = math.floor(min(x_coords))
         y_min = math.floor(min(y_coords))
@@ -111,7 +122,7 @@ class Block_edges():
 
     
     def block_all_the_edges(self):
-        for tr in tqdm(self.triangles):
+        for tr in (self.triangles):
             self.detect_edges(tr)
 
 
