@@ -6,7 +6,7 @@ import csv
 import os
 import pickle
 from typing import Union, Optional
-from numpy.typing import NDArray,tuple
+from numpy.typing import NDArray
 
 dim = int(3)
 
