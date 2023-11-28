@@ -1,4 +1,3 @@
-
 from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
@@ -54,9 +53,24 @@ class Resiuals():
                 self.list_res.append((x,y,z,a,value))
             
 
-    def nodes_of(self,Residual):
+    def nodes_of_not_boundary(self,Residual):
         "Add the sons of the Residual "  
-        x,y,z,axe,value = Resisual
-        if axe == 9
-    
+        i,j,k,axe,value = Resisual
+        if axe == 0 :
+            if value == 1:
+                if self.Res[0][i+1,j,k] == 1:
+                    self.Res_graph[Residual].append((i+1,j,k,0,1))
+                if self.Res[1][i,j,k] == -1 :
+                    self.Res_graph[Residual].append((i,j,k,1,-1))
+                if self.Res[2][i,j,k] == -1 :
+                    self.Res_graph[Residual].append((i,j,k,2,-1))
+                if self.Res[1][i,j+1,k] == 1:
+                    self.Res_graph[Residual].append((i,j+1,k,1,1))
+                if self.Res[2][i,j,k+1] == 1:
+                    self.Res_graph[Residual].append((i,j,k+1,2,1))
+            
+            if value == -1:
+                if self.Res[0][i-1,j,k] == 1:
+                    self.Res_graph
+
 
