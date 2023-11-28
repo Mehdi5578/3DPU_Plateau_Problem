@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 """Provides multiple functions for 3D phase unwrapping.
 """
 from copy import deepcopy

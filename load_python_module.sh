@@ -4,7 +4,7 @@
 module load python/3.11.5
 
 #Load the variable of the path of the project in your repo
-export projects="$HOME/projects/def-vidalthi/mehdii/3dPU/3dPU/"
+export projects="$HOME/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem"
 
 #Activate the virual environement
 source $projects/virtual_3dpu/bin/activate
@@ -17,4 +17,4 @@ export PYTHONPATH=$PYTHONPATH:$projects
 
 #To run the creation of the loops
 cd CreateLoops
-nohup python -u create_loops.py > output.log 2>&1 &
+# nohup python -u create_loops.py > output.log 2>&1 &
