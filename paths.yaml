@@ -1,0 +1,3 @@
+paths:
+  data_big: "/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Data/ph.nii"
+  logs: "/path/to/logs"

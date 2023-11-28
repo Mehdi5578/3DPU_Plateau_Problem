@@ -7,28 +7,56 @@ import csv
 import os
 import pickle
 from typing import Union, Optional
-from numpy.typing import NDArray
+from numpy.typing import NDArray,tuple
 
 dim = int(3)
 
+
+# Here each residual is stored in a tuple of five elements fist three are the smallest cooridnates of 
+# the face it lays upon, the second is the the axis = 0,1,2 and the third is the value = -1 or 1
+
+
 class Resiuals():
+    
     def __init__(self,data_phase):
         self.data = data_phase
+        self.Res  = {}
+        self.list_res = []
+        self.Res_graph = {}
 
 
-    def wrap(self,phi) -> NDArray:
+
+    def wrap(self,phi) :
         return np.round(phi / (2 * np.pi)).astype(int)
 
-    def grad(self,psi, a: int) -> NDArray:
+    def grad(self,psi, a: int):
         return np.diff(psi, axis=a)
 
-    def wrap_grad(self,psi: NDArray, a: int) -> NDArray:
+    def wrap_grad(self,psi: NDArray, a: int):
         return self.wrap(self.grad(psi, a))
 
-    def residuals(self,psi: NDArray, a: int) -> NDArray:
+    def residuals(self, a: int):
         assert(a >= 0 and a < dim)
         ax, ay = (a + np.arange(1, dim)) % dim
-        gx = wrap_grad(psi, a=ax)
-        gy = wrap_grad(psi, a=ay)
-        return np.diff(gy, axis=ax) - np.diff(gx, axis=ay)
+        gx = self.wrap_grad(self.data, a=ax)
+        gy = self.wrap_grad(self.data, a=ay)
+        self.Res[a] = np.diff(gy, axis=ax) - np.diff(gx, axis=ay)
+
+    def list_residuals(self) -> None:
+        for a in range(dim):
+            self.residuals(a)
+            I,J,K = np.where(self.Res[a] != 0)
+            for ind in range(len(I)):
+                x = I[ind]
+                y = J[ind]
+                z = K[ind]
+                value = self.Res[a][x,y,z]
+                self.list_res.append((x,y,z,a,value))
+            
+
+    def nodes_of(self,Residual):
+        "Add the sons of the Residual "  
+        x,y,z,axe,value = Resisual
+        if axe == 9
+    
 
