@@ -22,6 +22,7 @@ class Resiuals():
         self.Res  = {}
         self.list_res = []
         self.Res_graph = {}
+        self.grid_size = self.data.shape
 
 
 
@@ -70,7 +71,61 @@ class Resiuals():
                     self.Res_graph[Residual].append((i,j,k+1,2,1))
             
             if value == -1:
-                if self.Res[0][i-1,j,k] == 1:
-                    self.Res_graph
+                if self.Res[0][i-1,j,k] == -1:
+                    self.Res_graph[Residual].append((i-1,j,k,0,-1))
+                if self.Res[1][i,j-1,k] == -1:
+                    self.Res_graph[Residual].append((i,j-1,k,1,-1))
+                if self.Res[2][i,j,k-1] == -1:
+                    self.Res_graph[Residual].append((i,j,k-1,2,-1))
+                if self.Res[1][i-1,j+1,k] == 1:
+                    self.Res_graph[Residual].append((i-1,j+1,k,0,1))
+                if self.Res[2][i-1,j,k+1] == 1:
+                    self.Res_graph[Residual].append((i-1,j,k+1,2,1))
+        if axe == 1:
+            if value == 1:
+                if self.Res[1][i,j+1,k] == 1:
+                    self.Res_graph[Residual].append((i,j+1,k,1,1))
+                if self.Res[0][i,j,k] == -1:
+                    self.Res_graph[Residual].append((i,j,k,0,-1))
+                if self.Res[2][i,j,k] == -1:
+                    self.Res_graph[Residual].append((i,j,k,2,-1))
+                if self.Res[0][i+1,j,k] == 1:
+                    self.Res_graph[Residual].append((i+1,j,k,0,1))
+                if self.Res[2][i,j,k+1] == 1:
+                    self.Res_graph[Residual].append((i,j,k+1,2,1))
 
+            if value == -1:
+                if self.Res[1][i,j-1,k] == -1:
+                    self.Res_graph[Residual].append((i,j-1,k,1,-1))
+                if self.Res[0][i-1,j,k] == -1:
+                    self.Res_graph[Residual].append((i-1,j,k,0,-1))
+                if self.Res[2][i,j,k-1] == -1:
+                    self.Res_graph[Residual].append((i,j,k-1,2,-1))
+                if self.Res[0][i+1,j-1,k] == 1:
+                    self.Res_graph[Residual].append((i+1,j-1,k,0,1))
+                if self.Res[2][i,j-1,k+1] == 1:
+                    self.Res_graph[Residual].append((i,j-1,k+1,2,1))
+        if axe == 2:
+            if value == 1:
+                if self.Res[2][i,j,k+1] == 1:
+                    self.Res_graph[Residual].append((i,j,k+1,2,1))
+                if self.Res[0][i,j,k] == -1:
+                    self.Res_graph[Residual].append((i,j,k,0,-1))
+                if self.Res[1][i,j,k] == -1:
+                    self.Res_graph[Residual].append((i,j,k,1,-1))
+                if self.Res[0][i+1,j,k] == 1:
+                    self.Res_graph[Residual].append((i+1,j,k,0,1))
+                if self.Res[1][i,j+1,k] == 1:
+                    self.Res_graph[Residual].append((i,j+1,k,1,1))
 
+            if value == -1:
+                if self.Res[2][i,j,k-1] == -1:
+                    self.Res_graph[Residual].append((i,j,k-1,2,-1))
+                if self.Res[0][i-1,j,k] == -1:
+                    self.Res_graph[Residual].append((i-1,j,k,0,-1))
+                if self.Res[1][i,j-1,k] == -1:
+                    self.Res_graph[Residual].append((i,j-1,k,1,-1))
+                if self.Res[0][i+1,j,k-1] == 1:
+                    self.Res_graph[Residual].append((i+1,j,k-1,0,1))
+                if self.Res[1][i,j+1,k-1] == 1:
+                    self.Res_graph[Residual].append((i,j+1,k-1,1,1))
