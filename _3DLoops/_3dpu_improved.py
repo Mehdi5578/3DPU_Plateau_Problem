@@ -22,7 +22,7 @@ class Resiuals():
         self.Res  = {}
         self.list_res = []
         self.Res_graph = {}
-        self.grid_size = self.data.shape
+        self.X,self.Y, self.Z = self.data.shape
 
 
 
@@ -59,7 +59,7 @@ class Resiuals():
         #REVOIR LES VOISINS PAR -1
         i,j,k,axe,value = Residual
         if axe == 0 :
-            if value == 1:
+            if value == 1 and i < self.X + 1:
                 if self.Res[0][i+1,j,k] == 1:
                     self.Res_graph[Residual].append((i+1,j,k,0,1))
                 if self.Res[1][i,j,k] == -1 :
@@ -71,7 +71,7 @@ class Resiuals():
                 if self.Res[2][i,j,k+1] == 1:
                     self.Res_graph[Residual].append((i,j,k+1,2,1))
             
-            if value == -1:
+            if value == -1 and i > 0:
                 if self.Res[0][i-1,j,k] == -1:
                     self.Res_graph[Residual].append((i-1,j,k,0,-1))
                 if self.Res[1][i-1,j,k] == -1:
@@ -83,7 +83,7 @@ class Resiuals():
                 if self.Res[2][i-1,j,k+1] == 1:
                     self.Res_graph[Residual].append((i-1,j,k+1,2,1))
         if axe == 1:
-            if value == 1:
+            if value == 1 j < self.Y + 1:
                 if self.Res[1][i,j+1,k] == 1:
                     self.Res_graph[Residual].append((i,j+1,k,1,1))
                 if self.Res[0][i,j,k] == -1:
@@ -95,7 +95,7 @@ class Resiuals():
                 if self.Res[2][i,j,k+1] == 1:
                     self.Res_graph[Residual].append((i,j,k+1,2,1))
 
-            if value == -1:
+            if value == -1 and j > 0:
                 if self.Res[1][i,j-1,k] == -1:
                     self.Res_graph[Residual].append((i,j-1,k,1,-1))
                 if self.Res[0][i,j-1,k] == -1:
@@ -107,7 +107,7 @@ class Resiuals():
                 if self.Res[2][i,j-1,k+1] == 1:
                     self.Res_graph[Residual].append((i,j-1,k+1,2,1))
         if axe == 2:
-            if value == 1:
+            if value == 1 and k < self.Z + 1:
                 if self.Res[2][i,j,k+1] == 1:
                     self.Res_graph[Residual].append((i,j,k+1,2,1))
                 if self.Res[0][i,j,k] == -1:
@@ -119,7 +119,7 @@ class Resiuals():
                 if self.Res[1][i,j+1,k] == 1:
                     self.Res_graph[Residual].append((i,j+1,k,1,1))
 
-            if value == -1:
+            if value == -1 and k > 0:
                 if self.Res[2][i,j,k-1] == -1:
                     self.Res_graph[Residual].append((i,j,k-1,2,-1))
                 if self.Res[0][i,j,k-1] == -1:
@@ -130,3 +130,6 @@ class Resiuals():
                     self.Res_graph[Residual].append((i+1,j,k-1,0,1))
                 if self.Res[1][i,j+1,k-1] == 1:
                     self.Res_graph[Residual].append((i,j+1,k-1,1,1))
+
+
+        
