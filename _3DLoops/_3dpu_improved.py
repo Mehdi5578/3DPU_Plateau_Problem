@@ -142,11 +142,21 @@ class Resiuals():
                     self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k - 1, 1, 1)])
 
 
-    def dfs(self,node,visited, graph, edges):
-        visited.add(node)
-        for neighbour in graph[node]:
-            if neighbour not in visited:
-                edges.add((min(node, neighbour), max(node, neighbour)))  # Store edge in a normalized form
-                self.dfs(neighbour, graph, visited, edges)
-
+    def dfs(self,node,colour):
+        self.connex[node] = colour
+        for neighbour in self.Res_graph[node]:
+            if self.connex[node] == 0:
+                self.dfs(neighbour,colour)
+    
+    
+    def identify_connected_component(self):
+        for node in range(len(self.mapping)):
+            if self.connex[node] = 0
+        colour = 1
+        for node in range(len(self.mapping)):
+            if self.connex[node] == 0:
+                self.node(node,colour)
+                colour += 1
+        
+        
             
