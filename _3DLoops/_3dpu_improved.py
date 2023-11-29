@@ -179,7 +179,8 @@ class Resiuals():
             self.connected_components[self.connex[node]].append(node)
     
     
-    
+    def group_by_connected_compo(self):
+        pass
 
 
         
