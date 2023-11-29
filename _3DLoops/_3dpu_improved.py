@@ -182,6 +182,7 @@ class Resiuals():
     
     
     def group_by_connected_compo(self):
+        
         colours = len(self.connected_components)
 
         for colour in range(colours):
@@ -194,9 +195,9 @@ class Resiuals():
             self.Separate_graphs[colour][node] = self.Res_graph[node]
 
     def detect_cycles(self):
-        for colour in (self.Separate_graphs.keys()):
+        for colour in tqdm(self.Separate_graphs.keys()):
             pop = []
-            for node in tqdm(self.connected_components[colour]):
+            for node in (self.connected_components[colour]):
                 if self.connex[node] != -1 :
                     continue
                 pop.append(node)
