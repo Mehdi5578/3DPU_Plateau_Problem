@@ -7,6 +7,7 @@ import os
 import pickle
 from typing import Union, Optional
 from numpy.typing import NDArray
+from tqdm import tqdm
 
 dim = int(3)
 
@@ -27,7 +28,8 @@ class Resiuals():
         self.connected_components = {}
         self.mapping = []
         self.res_ordre = {}
-
+        self.Separate_graphs = {}
+        self.cycles = []
 
 
     def wrap(self,phi) :
@@ -180,7 +182,55 @@ class Resiuals():
     
     
     def group_by_connected_compo(self):
-        pass
+        colours = len(self.connected_components)
+
+        for colour in range(colours):
+            self.Separate_graphs[colour + 1] = {}
+            for node in self.connected_components[colour +1]:
+                self.Separate_graphs[colour +1][node]= []
+
+        for node in range(len(self.mapping)):
+            colour = self.connex[node]
+            self.Separate_graphs[colour][node] = self.Res_graph[node]
+
+    def detect_cycles(self):
+        for colour in (self.Separate_graphs.keys()):
+            pop = []
+            for node in tqdm(self.connected_components[colour]):
+                if self.connex[node] != -1 :
+                    continue
+                pop.append(node)
+                path = []
+                while pop :
+                    next = pop.pop()
+                    if self.connex[next] != -1 :
+                        if path and path[-1] == node:
+                            path.pop()
+                        continue
+                    self.connex[next] = -1
+                    path.append(next)
+                    pop.append(next)
+                    path_set  = set(path)
+                    for neighbour in self.Separate_graphs[colour][next]:
+                        if neighbour in path_set: # this is O(n) funny
+                            # Continue the logic or rebegin it is DFS now we 
+                            # are 
+                            cycle_index = path.index(neighbour)
+                            self.cycles.append(path[cycle_index:] + [neighbour])
+                        elif self.connex[neighbour] != -1:
+                            pop.append(neighbour)
+
+
+
+
+
+        
+
+
+
+
+
+        
 
 
         
