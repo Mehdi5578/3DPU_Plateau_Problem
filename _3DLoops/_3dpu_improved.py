@@ -25,6 +25,7 @@ class Resiuals():
         self.X,self.Y, self.Z = self.data.shape
         self.connex = {}
         self.mapping = []
+        self.res_ordre = {}
 
 
 
@@ -58,87 +59,87 @@ class Resiuals():
     def map_nodes(self):
         self.list_residuals()
         self.mapping = self.list_res
+        self.res_ordre = {residual: index for index, residual in enumerate(self.mapping)}
 
 
-    def nodes_of_not_boundary(self,Residual):
-        "Add the sons of the Residual "  
-        #REVOIR LES VOISINS PAR -1
-        i,j,k,axe,value = Residual
-        if axe == 0 :
-            if value == 1 and i < self.X -1:
-                if self.Res[0][i+1,j,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i+1,j,k,0,1)))
-                if self.Res[1][i,j,k] == -1 :
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k,1,-1)))
-                if self.Res[2][i,j,k] == -1 :
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k,2,-1)))
-                if self.Res[1][i,j+1,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j+1,k,1,1)))
-                if self.Res[2][i,j,k+1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k+1,2,1)))
-            
+    def nodes_of_not_boundary(self, Residual):
+        "Add the sons of the Residual"  
+        i, j, k, axe, value = Residual
+        if axe == 0:
+            if value == 1 and i < self.X - 1:
+                if self.Res[0][i + 1, j, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i + 1, j, k, 0, 1)])
+                if self.Res[1][i, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k, 1, -1)])
+                if self.Res[2][i, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k, 2, -1)])
+                if self.Res[1][i, j + 1, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k, 1, 1)])
+                if self.Res[2][i, j, k + 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k + 1, 2, 1)])
+
             if value == -1 and i > 0:
-                if self.Res[0][i-1,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i-1,j,k,0,-1)))
-                if self.Res[1][i-1,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i-1,j,k,1,-1)))
-                if self.Res[2][i-1,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i-1,j,k,2,-1)))
-                if self.Res[1][i-1,j+1,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i-1,j+1,k,0,1)))
-                if self.Res[2][i-1,j,k+1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i-1,j,k+1,2,1)))
-        if axe == 1:
-            if value == 1 and j < self.Y -1-1:
-                if self.Res[1][i,j+1,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j+1,k,1,1)))
-                if self.Res[0][i,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k,0,-1)))
-                if self.Res[2][i,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k,2,-1)))
-                if self.Res[0][i+1,j,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i+1,j,k,0,1)))
-                if self.Res[2][i,j,k+1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k+1,2,1)))
+                if self.Res[0][i - 1, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i - 1, j, k, 0, -1)])
+                if self.Res[1][i - 1, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i - 1, j, k, 1, -1)])
+                if self.Res[2][i - 1, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i - 1, j, k, 2, -1)])
+                if self.Res[1][i - 1, j + 1, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i - 1, j + 1, k, 1, 1)])
+                if self.Res[2][i - 1, j, k + 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i - 1, j, k + 1, 2, 1)])
+
+        elif axe == 1:
+            if value == 1 and j < self.Y - 1 - 1:
+                if self.Res[1][i, j + 1, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k, 1, 1)])
+                if self.Res[0][i, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k, 0, -1)])
+                if self.Res[2][i, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k, 2, -1)])
+                if self.Res[0][i + 1, j, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i + 1, j, k, 0, 1)])
+                if self.Res[2][i, j, k + 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k + 1, 2, 1)])
 
             if value == -1 and j > 0:
-                if self.Res[1][i,j-1,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j-1,k,1,-1)))
-                if self.Res[0][i,j-1,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j-1,k,0,-1)))
-                if self.Res[2][i,j-1,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j-1,k,2,-1)))
-                if self.Res[0][i+1,j-1,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i+1,j-1,k,0,1)))
-                if self.Res[2][i,j-1,k+1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j-1,k+1,2,1)))
-        if axe == 2:
-            if value == 1 and k < self.Z -1 :
-                if self.Res[2][i,j,k+1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k+1,2,1)))
-                if self.Res[0][i,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k,0,-1)))
-                if self.Res[1][i,j,k] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k,1,-1)))
-                if self.Res[0][i+1,j,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i+1,j,k,0,1)))
-                if self.Res[1][i,j+1,k] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j+1,k,1,1)))
+                if self.Res[1][i, j - 1, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j - 1, k, 1, -1)])
+                if self.Res[0][i, j - 1, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j - 1, k, 0, -1)])
+                if self.Res[2][i, j - 1, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j - 1, k, 2, -1)])
+                if self.Res[0][i + 1, j - 1, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i + 1, j - 1, k, 0, 1)])
+                if self.Res[2][i, j - 1, k + 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j - 1, k + 1, 2, 1)])
+        
+        
+        elif axe == 2:
+            if value == 1 and k < self.Z - 1:
+                if self.Res[2][i, j, k + 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k + 1, 2, 1)])
+                if self.Res[0][i, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k, 0, -1)])
+                if self.Res[1][i, j, k] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k, 1, -1)])
+                if self.Res[0][i + 1, j, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i + 1, j, k, 0, 1)])
+                if self.Res[1][i, j + 1, k] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k, 1, 1)])
 
             if value == -1 and k > 0:
-                if self.Res[2][i,j,k-1] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k-1,2,-1)))
-                if self.Res[0][i,j,k-1] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k-1,0,-1)))
-                if self.Res[1][i,j,k-1] == -1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j,k-1,1,-1)))
-                if self.Res[0][i+1,j,k-1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i+1,j,k-1,0,1)))
-                if self.Res[1][i,j+1,k-1] == 1:
-                    self.Res_graph[self.mapping.index(Residual)].append(self.mapping.index((i,j+1,k-1,1,1)))
-    
-
-       
+                if self.Res[2][i, j, k - 1] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k - 1, 2, -1)])
+                if self.Res[0][i, j, k - 1] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k - 1, 0, -1)])
+                if self.Res[1][i, j, k - 1] == -1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j, k - 1, 1, -1)])
+                if self.Res[0][i + 1, j, k - 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i + 1, j, k - 1, 0, 1)])
+                if self.Res[1][i, j + 1, k - 1] == 1:
+                    self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k - 1, 1, 1)])
 
 
     def dfs(self,node,visited, graph, edges):
