@@ -24,6 +24,7 @@ class Resiuals():
         self.Res_graph = {}
         self.X,self.Y, self.Z = self.data.shape
         self.connex = {}
+        self.connected_components = {}
         self.mapping = []
         self.res_ordre = {}
 
@@ -142,21 +143,38 @@ class Resiuals():
                     self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k - 1, 1, 1)])
 
 
-    def dfs(self,node,colour):
+    def dfs(self,node, colour):
+        stack = [node]
         self.connex[node] = colour
-        for neighbour in self.Res_graph[node]:
-            if self.connex[node] == 0:
-                self.dfs(neighbour,colour)
+        while stack:
+            node = stack.pop()
+            for neighbor in self.Res_graph[node]:
+                if self.connex[neighbor] == 0:
+                    self.connex[neighbor] = colour
+                    stack.append(neighbor)
     
     
     def identify_connected_component(self):
+
         for node in range(len(self.mapping)):
-            if self.connex[node] = 0
+            self.connex[node] = 0
         colour = 1
+
         for node in range(len(self.mapping)):
             if self.connex[node] == 0:
-                self.node(node,colour)
+                self.dfs(node,colour)
                 colour += 1
+
+        for k in range(colour):
+            self.connected_components[k+1] = []
+
+        for node in range(len(self.mapping)):
+            self.connected_components[self.connex[node]].append(node)
+    
+    
+    
+
+
         
         
             
