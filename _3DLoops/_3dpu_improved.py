@@ -143,6 +143,13 @@ class Resiuals():
                     self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k - 1, 1, 1)])
 
 
+    def create_graph(self):
+        for res in self.list_res:
+            self.Res_graph[self.res_ordre[res]] = []
+        for res in (self.list_res):
+            i,j,k,axe,value = res
+            self.nodes_of_not_boundary(res)
+
     def dfs(self,node, colour):
         stack = [node]
         self.connex[node] = colour
