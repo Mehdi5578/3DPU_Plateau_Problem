@@ -269,6 +269,8 @@ class Resiuals():
                 next = self.Res_graph[node][0]
                 path.append(next)
                 node = next
+            for point in path:
+                self.incycles[point] = -1
             self.open_paths.append(path)
 
 
