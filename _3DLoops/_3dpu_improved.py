@@ -30,6 +30,7 @@ class Resiuals():
         self.res_ordre = {}
         self.Separate_graphs = {}
         self.cycles = []
+        self.incycles = []
 
 
     def wrap(self,phi) :
@@ -149,7 +150,6 @@ class Resiuals():
         for res in self.list_res:
             self.Res_graph[self.res_ordre[res]] = []
         for res in (self.list_res):
-            i,j,k,axe,value = res
             self.nodes_of_not_boundary(res)
 
     def dfs(self,node, colour):
@@ -194,43 +194,36 @@ class Resiuals():
             colour = self.connex[node]
             self.Separate_graphs[colour][node] = self.Res_graph[node]
 
+   
     def detect_cycles(self):
-        for node in tqdm(range(len(self.mapping))):
-            if self.connex[node] == -1:  # Node already visited
-                continue
+        self.incycles = [1]*len(self.mapping)
+        path_indices = {}
+        for v in tqdm(range((len(self.mapping)))):
+            if self.connex[v] != -1:
+                self.dfs_iterative(v,path_indices)
 
-            stack = [node]
-            in_path = set()  # Track nodes currently in path
+    def dfs_iterative(self, start,path_indices):
+        stack = [(start, -1)]
+        path_indices[start] = 0
+        path = [start]
+        while stack:
+            node, parent = stack.pop()
+            if self.connex[node] != -1:
+                for neighbour in self.Res_graph[node]:
+                    if neighbour != parent:
+                        if neighbour in path:
+                            cycle_start_index = path.index(neighbour)
+                            self.cycles.append(path[cycle_start_index:] + [neighbour])
+                            for point in path[cycle_start_index:] + [neighbour]:
+                                self.connex[point] = -1
+                                self.incycles[point] = -1
+                        else:
+                            stack.append((neighbour, node))
+                            path = path + [neighbour]
+                            path_indices[neighbour] = len(path)
+                        
 
-            while stack:
-                current = stack[-1]
-
-                if current not in in_path:
-                    self.connex[current] = -1  # Mark as visited
-                    in_path.add(current)
-
-                    for neighbour in self.Res_graph[current]:
-                        if self.connex[neighbour] != -1:  # Unvisited neighbor
-                            stack.append(neighbour)
-                        elif neighbour in in_path:  # Cycle detected
-                            # Optional: Extract and return the first detected cycle
-                            return self.extract_cycle(stack, neighbour)
-                else:
-                    in_path.remove(current)
-                    stack.pop()
-
-    # Optional: return all detected cycles
-    # return self.cycles
-
-    def extract_cycle(self, stack, start_node):
-        cycle = []
-        for node in reversed(stack):
-            cycle.append(node)
-            if node == start_node:
-                break
-        cycle.reverse()
-        return cycle
-
+                self.connex[node] = -1
         
 
 
@@ -238,7 +231,7 @@ class Resiuals():
 
 
         
-        
+
 
 
         
