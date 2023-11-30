@@ -30,8 +30,10 @@ class Resiuals():
         self.res_ordre = {}
         self.Separate_graphs = {}
         self.cycles = []
+        self.visited = []
         self.incycles = []
-
+        self.starting_open_paths = []
+        self.open_paths = []
 
     def wrap(self,phi) :
         return np.round(phi / (2 * np.pi)).astype(int)
@@ -193,10 +195,36 @@ class Resiuals():
         for node in range(len(self.mapping)):
             colour = self.connex[node]
             self.Separate_graphs[colour][node] = self.Res_graph[node]
-
+    
+    def is_boundary(self,node):
+        i,j,k,axe,value = self.mapping[node]
+        if axe == 0 and i in [self.X - 1, 0]:
+            return True
+        if axe == 1 and j in [self.Y - 1, 0]:
+            return True
+        if axe == 2 and i in [self.Z - 1, 0]:
+            return True
+        return False
+    
+    def is_entering_from_boundary(self,node):
+        i,j,k,axe,value = self.mapping[node]
+        if axe == 0 and i == 0 and value == 1:
+            return True
+        if axe == 0 and i == self.X - 1 and value == -1:
+            return True
+        if axe == 1 and j == 0 and value == 1:
+            return True
+        if axe == 1 and j == self.Y - 1 and value == -1:
+            return True
+        if axe == 2 and k == 0 and value == 1:
+            return True
+        if axe == 2 and k == self.Z - 1 and value == -1:
+            return True
+        return False
    
     def detect_cycles(self):
         self.incycles = [1]*len(self.mapping)
+        self.visited = [1]*len(self.mapping)
         path_indices = {}
         for v in tqdm(range((len(self.mapping)))):
             if self.connex[v] != -1:
@@ -208,14 +236,14 @@ class Resiuals():
         path = [start]
         while stack:
             node, parent = stack.pop()
-            if self.connex[node] != -1:
+            if self.visited[node] != -1:
                 for neighbour in self.Res_graph[node]:
                     if neighbour != parent:
                         if neighbour in path:
                             cycle_start_index = path.index(neighbour)
                             self.cycles.append(path[cycle_start_index:] + [neighbour])
                             for point in path[cycle_start_index:] + [neighbour]:
-                                self.connex[point] = -1
+                                self.visited[point] = -1
                                 self.incycles[point] = -1
                         else:
                             stack.append((neighbour, node))
@@ -223,7 +251,29 @@ class Resiuals():
                             path_indices[neighbour] = len(path)
                         
 
-                self.connex[node] = -1
+                self.visited[node] = -1
+
+    def fill_starting_open_paths(self):
+        """This should be after detecting the closed cycles"""
+        for node in range(len(self.mapping)):
+            if self.is_entering_from_boundary(node):
+                self.starting_open_paths.append(node)
+        
+
+    def fill_open_paths(self):
+        self.fill_starting_open_paths()
+        for node in self.starting_open_paths:
+            path = [node]
+            self.incycles[node] = -1
+            while len(self.Res_graph[node]) != 0:
+                next = self.Res_graph[node][0]
+                path.append(next)
+                node = next
+            self.open_paths.append(path)
+
+
+            
+    
         
 
 
