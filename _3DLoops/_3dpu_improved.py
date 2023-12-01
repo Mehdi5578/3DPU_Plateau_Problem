@@ -226,6 +226,7 @@ class Resiuals():
 
         self.incycles = [1]*len(self.mapping)
         self.visited = [1]*len(self.mapping)
+
         for v in tqdm(range((len(self.mapping)))):
             if self.visited[v] != -1:
                 self.dfs_iterative(v)
