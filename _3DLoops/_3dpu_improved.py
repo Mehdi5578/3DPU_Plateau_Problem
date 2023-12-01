@@ -223,16 +223,15 @@ class Resiuals():
         return False
    
     def detect_cycles(self):
+
         self.incycles = [1]*len(self.mapping)
         self.visited = [1]*len(self.mapping)
-        path_indices = {}
         for v in tqdm(range((len(self.mapping)))):
-            if self.connex[v] != -1:
-                self.dfs_iterative(v,path_indices)
+            if self.visited[v] != -1:
+                self.dfs_iterative(v)
 
-    def dfs_iterative(self, start,path_indices):
+    def dfs_iterative(self, start):
         stack = [(start, -1)]
-        path_indices[start] = 0
         path = [start]
         while stack:
             node, parent = stack.pop()
@@ -248,7 +247,7 @@ class Resiuals():
                         else:
                             stack.append((neighbour, node))
                             path = path + [neighbour]
-                            path_indices[neighbour] = len(path)
+                            
                         
 
                 self.visited[node] = -1
