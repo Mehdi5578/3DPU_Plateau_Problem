@@ -222,36 +222,33 @@ class Resiuals():
             return True
         return False
    
-    def detect_cycles(self):
+    def dfs(self, v, path,path_dic):
+        self.visited[v] = True
+        self.stack[v] = True
+        path.append(v)
+        path_dic[v] = len(path)-1
 
-        self.incycles = [1]*len(self.mapping)
-        self.visited = [1]*len(self.mapping)
-        path_indices = {}
-        for v in tqdm(range((len(self.mapping)))):
-            if self.visited[v] != -1:
-                self.dfs_iterative(v,path_indices)
+        for neighbour in self.Res_graph[v]:
+            if not self.visited[neighbour]:
+                if self.dfs(self,neighbour, path[:],path_dic):
+                    return True
+            elif self.stack[neighbour]:
+                cycle_start_index = path_dic[neighbour]
+                cycle = path[cycle_start_index:] + [neighbour]
+                self.cycles.append(cycle)
+                return True
 
-    def dfs_iterative(self, start,path_indices):
-        stack = [(start, -1)]
-        path_indices[start] = 0
-        path = [start]
-        while stack:
-            node, parent = stack.pop()
-            if self.visited[node] != -1:
-                for neighbour in self.Res_graph[node]:
-                    if neighbour != parent and self.visited[neighbour] != -1:
-                        if neighbour in path:
-                            cycle_start_index = path.index(neighbour)
-                            self.cycles.append(path[cycle_start_index:] + [neighbour])
-                            for point in path[cycle_start_index:] + [neighbour]:
-                                self.visited[point] = -1
-                                self.incycles[point] = -1
-                        else:
-                            stack.append((neighbour, node))
-                            path = path + [neighbour]
-                self.visited[node] = -1
-            if node in path:
-                path.remove(node)
+        self.stack[v] = False
+        return False
+
+    def detect_cycles(self,stack):
+        self.visited = [False] * len(self.mapping)
+        self.stack = [False]*len(self.mapping)
+
+        for i in tqdm(range(len(self.mapping))):
+            stack = [False]*len(self.mapping)
+            if not self.visited[i]:
+                self.dfs(i, [],{})
 
     def fill_starting_open_paths(self):
         """This should be after detecting the closed cycles"""
