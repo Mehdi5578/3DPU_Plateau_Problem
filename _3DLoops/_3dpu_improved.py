@@ -226,19 +226,20 @@ class Resiuals():
 
         self.incycles = [1]*len(self.mapping)
         self.visited = [1]*len(self.mapping)
-
+        path_indices = {}
         for v in tqdm(range((len(self.mapping)))):
             if self.visited[v] != -1:
-                self.dfs_iterative(v)
+                self.dfs_iterative(v,path_indices)
 
-    def dfs_iterative(self, start):
+    def dfs_iterative(self, start,path_indices):
         stack = [(start, -1)]
+        path_indices[start] = 0
         path = [start]
         while stack:
             node, parent = stack.pop()
             if self.visited[node] != -1:
                 for neighbour in self.Res_graph[node]:
-                    if neighbour != parent:
+                    if neighbour != parent and self.visited[neighbour] != -1:
                         if neighbour in path:
                             cycle_start_index = path.index(neighbour)
                             self.cycles.append(path[cycle_start_index:] + [neighbour])
@@ -248,10 +249,9 @@ class Resiuals():
                         else:
                             stack.append((neighbour, node))
                             path = path + [neighbour]
-                            
-                        
-
                 self.visited[node] = -1
+            if node in path:
+                path.remove(node)
 
     def fill_starting_open_paths(self):
         """This should be after detecting the closed cycles"""
