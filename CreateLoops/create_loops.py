@@ -1,50 +1,38 @@
-import yaml
 import sys
-import nibabel as nb
-import sys 
 import os
+import numpy as np
+import yaml
 import time
+from _3DLoops._3dpu_using_dfs import *
+import nibabel as nb
+ROOT = "../"
 
-# Get the directory of the current file (create_loops.py)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up one level to the '3dPU' directory
-parent_dir = os.path.dirname(current_dir)
-# Add the '3dPU' directory to the sys.path
-# sys.path.append(parent_dir)
-# os.chdir(r"C:\Users\oudao\OneDrive\Documents\Montréal 4A\Les études\Chair AI-SCALE")
-# # Now your working directory is changed, and you can open the file with a relative path
+sys.path.append(ROOT)
+print("cleaner")
 
+# Load the YAML file
+with open(ROOT + 'paths.yaml', 'r') as file:
+    config = yaml.safe_load(file)
 
-from _3DLoops._3dpu import *
-
-Initial_Path = sys.path[-1]
-
-# with open(Initial_Path + '\\paths\\MRI_data.yaml', 'r') as fi :
-#     paths = yaml.safe_load(fi)
-
-# chemin = paths["Paths"]["phase"].decode('utf-8').encode('cp1252')
-
-chemin = r"/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Data/artificial_data/data_ball_wrapped.pkl"
+# Access paths
+data_path = config['paths']["data_big"]
 
 t = 1
-
-print(chemin)
+data = nb.load(data_path).get_fdata()
+data = np.array(data)[:,:,:,t]
 
 if __name__ == '__main__':
-    print("begining the data extraction")
-   #  phase_image = nb.load(chemin)
-   #  phase_data = phase_image.get_fdata()[:,:,:,t] # type: ignore
-    with open(r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Data/artificial_data/data_ball_wrapped.pkl', 'rb') as file:
-       phase_data = pickle.load (file)
-    print("data extracted")
-    deb = time.time()
-    marker2 = {}
-    loops = []
-    l = residual_loops(marker2,phase_data,r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/created_loops_artificial.pkl')
-    with open(r'/home/mehdii/projects/def-vidalthi/mehdii/3dPU/3dPU/Created_Loops/created_loops_artificial.pkl', 'wb') as f:
-       pickle.dump(l, f)
-    fin = time.time()
-    print(fin-deb)
+   deb = time.time()
+   C = Resiuals(data)
+   C.map_nodes()
+   C.create_graph()
+   C.cycles = []
+   C.incycles = [1]*len(C.mapping)
+   C.connex =[1]*len(C.mapping)
+   C.visited = [False]*len(C.mapping)
+   C.detect_cycles()
+   fin = time.time()
+   print("the processus took",fin - deb)
 
     
 

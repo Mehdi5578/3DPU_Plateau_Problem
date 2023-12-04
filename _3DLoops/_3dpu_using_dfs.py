@@ -154,33 +154,33 @@ class Resiuals():
         for res in (self.list_res):
             self.nodes_of_not_boundary(res)
 
-    def dfs(self,node, colour):
-        stack = [node]
-        self.connex[node] = colour
-        while stack:
-            node = stack.pop()
-            for neighbor in self.Res_graph[node]:
-                if self.connex[neighbor] == 0:
-                    self.connex[neighbor] = colour
-                    stack.append(neighbor)
+    # def dfs(self,node, colour):
+    #     stack = [node]
+    #     self.connex[node] = colour
+    #     while stack:
+    #         node = stack.pop()
+    #         for neighbor in self.Res_graph[node]:
+    #             if self.connex[neighbor] == 0:
+    #                 self.connex[neighbor] = colour
+    #                 stack.append(neighbor)
     
     
-    def identify_connected_component(self):
+    # def identify_connected_component(self):
 
-        for node in range(len(self.mapping)):
-            self.connex[node] = 0
-        colour = 1
+    #     for node in range(len(self.mapping)):
+    #         self.connex[node] = 0
+    #     colour = 1
 
-        for node in range(len(self.mapping)):
-            if self.connex[node] == 0:
-                self.dfs(node,colour)
-                colour += 1
+    #     for node in range(len(self.mapping)):
+    #         if self.connex[node] == 0:
+    #             self.dfs(node,colour)
+    #             colour += 1
 
-        for k in range(colour):
-            self.connected_components[k+1] = []
+    #     for k in range(colour):
+    #         self.connected_components[k+1] = []
 
-        for node in range(len(self.mapping)):
-            self.connected_components[self.connex[node]].append(node)
+    #     for node in range(len(self.mapping)):
+    #         self.connected_components[self.connex[node]].append(node)
     
     
     def group_by_connected_compo(self):
@@ -230,7 +230,7 @@ class Resiuals():
 
         for neighbour in self.Res_graph[v]:
             if not self.visited[neighbour]:
-                if self.dfs(self,neighbour, path[:],path_dic):
+                if self.dfs(neighbour, path[:],path_dic):
                     return True
             elif self.stack[neighbour]:
                 cycle_start_index = path_dic[neighbour]
@@ -241,14 +241,16 @@ class Resiuals():
         self.stack[v] = False
         return False
 
-    def detect_cycles(self,stack):
+    def detect_cycles(self):
         self.visited = [False] * len(self.mapping)
         self.stack = [False]*len(self.mapping)
 
-        for i in tqdm(range(len(self.mapping))):
-            stack = [False]*len(self.mapping)
+        for i in (range(len(self.mapping))):
+            self.stack = [False]*len(self.mapping)
             if not self.visited[i]:
                 self.dfs(i, [],{})
+            if i%1000 == 0 :
+                print("the {pourcent} of the analysis is done".format(100*i/len(self.mapping)))
 
     def fill_starting_open_paths(self):
         """This should be after detecting the closed cycles"""
