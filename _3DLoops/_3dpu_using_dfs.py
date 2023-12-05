@@ -222,39 +222,40 @@ class Resiuals():
             return True
         return False
    
-    def dfs(self, v, path,path_dic):
-        self.visited[v] = True
-        self.stack[v] = True
-        path.append(v)
-        path_dic[v] = len(path)-1
+    def iterative_dfs(self, start):
+        stack = [(start, [start])]
+        self.visited[start] = True
+        path_dic = {start: 0}
 
-        for neighbour in self.Res_graph[v]:
-            if not self.visited[neighbour]:
-                if self.dfs(neighbour, path[:],path_dic):
+        while stack:
+            v, path, = stack.pop()
+            self.visited[v] = True
+            path_dic[v] = len(path) - 1
+
+            for neighbour in self.Res_graph[v]:
+                if not self.visited[neighbour]:
+                    newPath = path + [neighbour]
+                    stack.append((neighbour, newPath))
+                elif neighbour in path:
+                    cycle_start_index = path_dic[neighbour]
+                    cycle = path[cycle_start_index:] + [neighbour]
+
+                    self.cycles.append(cycle)
+                    for point in cycle:
+                        self.visited[point] = True
+                        self.incycles[point] = True
                     return True
-            elif self.stack[neighbour]:
-                cycle_start_index = path_dic[neighbour]
-                cycle = path[cycle_start_index:] + [neighbour]
-                self.cycles.append(cycle)
-                return True
 
-        self.stack[v] = False
-        return False
+        return stack
 
-    def detect_cycles(self):
-        self.visited = [False] * len(self.mapping)
-        self.stack = [False]*len(self.mapping)
-
-        for i in (range(len(self.mapping))):
-            self.stack = [False]*len(self.mapping)
+    def detect_cycles_iterative(self):
+        for i in tqdm(range(len(self.mapping))):
             if not self.visited[i]:
-                self.dfs(i, [],{})
-            if i%1000 == 0 :
-                print("the {pourcent} of the analysis is done".format(100*i/len(self.mapping)))
-
+                self.iterative_dfs(i)
+                
     def fill_starting_open_paths(self):
         """This should be after detecting the closed cycles"""
-        for node in range(len(self.mapping)):
+        for node in tqdm(range(len(self.mapping))):
             if self.is_entering_from_boundary(node):
                 self.starting_open_paths.append(node)
         
