@@ -97,7 +97,7 @@ class Resiuals():
                     self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i - 1, j, k + 1, 2, 1)])
 
         elif axe == 1:
-            if value == 1 and j < self.Y - 1 - 1:
+            if value == 1 and j < self.Y - 1 :
                 if self.Res[1][i, j + 1, k] == 1:
                     self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k, 1, 1)])
                 if self.Res[0][i, j, k] == -1:
@@ -202,7 +202,7 @@ class Resiuals():
             return True
         if axe == 1 and j in [self.Y - 1, 0]:
             return True
-        if axe == 2 and i in [self.Z - 1, 0]:
+        if axe == 2 and k in [self.Z - 1, 0]:
             return True
         return False
     
@@ -255,6 +255,7 @@ class Resiuals():
                 
     def fill_starting_open_paths(self):
         """This should be after detecting the closed cycles"""
+        self.starting_open_paths = []
         for node in tqdm(range(len(self.mapping))):
             if self.is_entering_from_boundary(node):
                 self.starting_open_paths.append(node)
