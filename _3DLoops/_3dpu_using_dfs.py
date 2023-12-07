@@ -261,22 +261,42 @@ class Resiuals():
                 self.starting_open_paths.append(node)
         
 
+
     def fill_open_paths(self):
         self.fill_starting_open_paths()
-        for node in self.starting_open_paths:
-            path = [node]
-            self.incycles[node] = -1
-            while len(self.Res_graph[node]) != 0:
-                next = self.Res_graph[node][0]
-                path.append(next)
-                node = next
+        paths = dict()
+        layer = set(self.starting_open_paths)
+        for path in self.cycles:
             for point in path:
-                self.incycles[point] = -1
-            self.open_paths.append(path)
-
-
+                self.incycles[point] = True
+        antecedant = dict()
+        paths = dict()
+        visited = set()
+        for point in tqdm(layer):
+            paths[point] = [point]
+            antecedant[point] = point
+        cpt = 0
+        while layer != {-1}:
+            cpt += 1
+            if cpt % 100 == 0:
+                print(len(layer))
+            new_layer = set()
+            for point in (layer):
+                if point != -1 :
+                    next_nodes = [n for n in self.Res_graph[point] if (not self.incycles[n] and n not in visited)]
+                    if next_nodes:
+                        next_node = next_nodes[0]
+                        paths[antecedant[point]].append(next_node)
+                        antecedant[next_node] = antecedant[point]
+                        visited.add(next_node)
+                    else:
+                        next_node = -1
+                    new_layer.add(next_node)
+            assert layer != new_layer, "there is a repetition"
+            layer = new_layer
             
-    
+
+        self.open_paths = list(paths.values())
         
 
 
