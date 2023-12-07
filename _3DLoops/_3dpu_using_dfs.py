@@ -25,6 +25,7 @@ class Resiuals():
         self.Res_graph = {}
         self.X,self.Y, self.Z = self.data.shape
         self.connex = {}
+        self.indirected_graph = {}
         self.connected_components = {}
         self.mapping = []
         self.res_ordre = {}
@@ -33,6 +34,7 @@ class Resiuals():
         self.visited = []
         self.incycles = []
         self.starting_open_paths = []
+
         self.open_paths = []
 
     def wrap(self,phi) :
@@ -151,36 +153,51 @@ class Resiuals():
     def create_graph(self):
         for res in self.list_res:
             self.Res_graph[self.res_ordre[res]] = []
-        for res in (self.list_res):
+        for res in tqdm(self.list_res):
             self.nodes_of_not_boundary(res)
+        
+        self.indirected_graph = deepcopy(self.Res_graph)
+        for point in tqdm(range(len(self.mapping))):
+            sons = self.Res_graph[point]
+            self.indirected_graph[point] = self.Res_graph[point]
+            for son in sons:
+                self.indirected_graph[son].append(point)
 
-    # def dfs(self,node, colour):
-    #     stack = [node]
-    #     self.connex[node] = colour
-    #     while stack:
-    #         node = stack.pop()
-    #         for neighbor in self.Res_graph[node]:
-    #             if self.connex[neighbor] == 0:
-    #                 self.connex[neighbor] = colour
-    #                 stack.append(neighbor)
+    def detect_connex(self,node, colour):
+        visited = set()
+        stack = set()
+        stack.add(node)
+        while len(stack) != 0:
+            new_stack = set()
+            for next in stack :
+                self.connex[next] = colour
+                visited.add(next)
+                for neighbour in self.indirected_graph[next]:
+                    if neighbour not in visited:
+                        new_stack.add(neighbour)
+                        visited.add(neighbour)
+                        self.connex[neighbour] = colour
+                stack = new_stack
+
+
     
-    
-    # def identify_connected_component(self):
 
-    #     for node in range(len(self.mapping)):
-    #         self.connex[node] = 0
-    #     colour = 1
+    def identify_connected_component(self):
 
-    #     for node in range(len(self.mapping)):
-    #         if self.connex[node] == 0:
-    #             self.dfs(node,colour)
-    #             colour += 1
+        for node in range(len(self.mapping)):
+            self.connex[node] = 0
+        colour = 1
 
-    #     for k in range(colour):
-    #         self.connected_components[k+1] = []
+        for node in tqdm(range(len(self.mapping))):
+            if self.connex[node] == 0:
+                self.detect_connex(node,colour)
+                colour += 1
 
-    #     for node in range(len(self.mapping)):
-    #         self.connected_components[self.connex[node]].append(node)
+        for k in range(colour):
+            self.connected_components[k+1] = []
+
+        for node in range(len(self.mapping)):
+            self.connected_components[self.connex[node]].append(node)
     
     
     def group_by_connected_compo(self):
@@ -263,9 +280,14 @@ class Resiuals():
 
 
     def fill_open_paths(self):
+        self.incycles = [False]*len(self.mapping)
+        for path in self.cycles:
+            for point in path:
+                self.incycles[point] = True
+        self.open_paths = []
         self.fill_starting_open_paths()
-        paths = dict()
         layer = set(self.starting_open_paths)
+        print(layer)
         for path in self.cycles:
             for point in path:
                 self.incycles[point] = True
