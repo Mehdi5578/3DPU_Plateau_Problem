@@ -159,7 +159,7 @@ class Resiuals():
         self.indirected_graph = deepcopy(self.Res_graph)
         for point in tqdm(range(len(self.mapping))):
             sons = self.Res_graph[point]
-            self.indirected_graph[point] = self.Res_graph[point]
+            self.indirected_graph[point] = deepcopy(self.Res_graph[point])
             for son in sons:
                 self.indirected_graph[son].append(point)
 
