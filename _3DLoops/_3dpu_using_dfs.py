@@ -281,9 +281,6 @@ class Resiuals():
 
     def fill_open_paths(self):
         self.incycles = [False]*len(self.mapping)
-        for path in self.cycles:
-            for point in path:
-                self.incycles[point] = True
         self.open_paths = []
         self.fill_starting_open_paths()
         layer = set(self.starting_open_paths)
@@ -309,6 +306,7 @@ class Resiuals():
                     if next_nodes:
                         next_node = next_nodes[0]
                         paths[antecedant[point]].append(next_node)
+                        self.incycles[point] = True
                         antecedant[next_node] = antecedant[point]
                         visited.add(next_node)
                     else:
