@@ -163,7 +163,7 @@ class Resiuals():
             for son in sons:
                 self.indirected_graph[son].append(point)
 
-    def detect_connex(self,node, colour):
+    def detect_connex(self ,node ,colour):
         visited = set()
         stack = set()
         stack.add(node)
