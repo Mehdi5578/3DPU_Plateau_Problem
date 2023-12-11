@@ -297,7 +297,7 @@ class Resiuals():
         cpt = 0
         while layer != {-1}:
             cpt += 1
-            if cpt % 100 == 0:
+            if cpt % 1 == 0:
                 print(len(layer))
             new_layer = set()
             for point in (layer):
