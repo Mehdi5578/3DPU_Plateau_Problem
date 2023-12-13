@@ -34,6 +34,7 @@ class Resiuals():
         self.visited = []
         self.incycles = []
         self.starting_open_paths = []
+        self.inverted_dictionnary = dict()
 
         self.open_paths = []
 
@@ -156,12 +157,13 @@ class Resiuals():
         for res in tqdm(self.list_res):
             self.nodes_of_not_boundary(res)
         
-        self.indirected_graph = deepcopy(self.Res_graph)
-        for point in tqdm(range(len(self.mapping))):
-            sons = self.Res_graph[point]
-            self.indirected_graph[point] = deepcopy(self.Res_graph[point])
-            for son in sons:
-                self.indirected_graph[son].append(point)
+        for val in self.Res_graph.values():
+            self.inverted_dictionnary[tuple(sorted(val))] = []
+
+        for key,value in self.Res_graph.items():
+            self.inverted_dictionnary[tuple(sorted(value))].append(key)
+
+            
 
     def detect_connex(self ,node ,colour):
         visited = set()
