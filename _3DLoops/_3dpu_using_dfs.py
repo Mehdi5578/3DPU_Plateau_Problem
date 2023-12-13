@@ -163,7 +163,7 @@ class Resiuals():
         for key,value in self.Res_graph.items():
             self.inverted_dictionnary[tuple(sorted(value))].append(key)
 
-            
+
 
     def detect_connex(self ,node ,colour):
         visited = set()
@@ -287,9 +287,6 @@ class Resiuals():
         self.fill_starting_open_paths()
         layer = set(self.starting_open_paths)
         print(layer)
-        for path in self.cycles:
-            for point in path:
-                self.incycles[point] = True
         antecedant = dict()
         paths = dict()
         visited = set()
@@ -304,7 +301,7 @@ class Resiuals():
             new_layer = set()
             for point in (layer):
                 if point != -1 :
-                    next_nodes = [n for n in self.Res_graph[point] if (not self.incycles[n] and n not in visited)]
+                    next_nodes = [n for n in self.Res_graph[point] if (n not in visited)]
                     if next_nodes:
                         next_node = next_nodes[0]
                         paths[antecedant[point]].append(next_node)
