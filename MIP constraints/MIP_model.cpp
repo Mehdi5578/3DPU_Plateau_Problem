@@ -5,10 +5,20 @@
 #include "gurobi_c++.h"
 using namespace std;
 
+
+
+
 int
 main(int   argc,
      char *argv[])
+
 {
+  MIP_model::Graph g(208,208,96);
+  g.CreateGraph(208,208,96);
+  int number_edges  = g.countEdges();
+  int number_vertices = g.adjList.size();
+  cout << "Number of vertices: " << number_vertices << endl;
+  cout << "Number of edges: " << number_edges << endl;
   try {
 
     // Create an environment
@@ -18,30 +28,46 @@ main(int   argc,
 
     // Create an empty model
     GRBModel model = GRBModel(env);
+    int size = 12376832;
+    // Create 3D variable
+    GRBVar x[size];
 
-    // Create variables
-    GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x");
-    GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y");
-    GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z");
 
-    // Set objective: maximize x + y + 2 z
-    model.setObjective(x + y + 2 * z, GRB_MAXIMIZE);
+    for (int i = 0; i < size; i++){
+        x[i] = model.addVar(0.0, 100,0,GRB_INTEGER, "x_" + to_string(i) );
+      }
+  
+
+    model.update();
+    // GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y");
+    // GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z");
+
+    // Set objective: maximize x.y + 2 y.z
+    GRBQuadExpr Obj = 0;
+    for (int i = 0; i < size; i++){
+        Obj += x[i]* x[i];
+      
+    }
+    model.setObjective(Obj, GRB_MAXIMIZE);
 
     // Add constraint: x + 2 y + 3 z <= 4
-    model.addConstr(x + 2 * y + 3 * z <= 4, "c0");
+    model.addConstr(x[0]- 2 * x[1] + 3 * x[143] <= 1, "c0");
+
+    for (int i = 0 ; i < size; i++){
+          model.addConstr(x[i]  + x[i+124] <= 1, "c1");
+      }
 
     // Add constraint: x + y >= 1
-    model.addConstr(x + y >= 1, "c1");
 
     // Optimize model
     model.optimize();
 
-    cout << x.get(GRB_StringAttr_VarName) << " "
-         << x.get(GRB_DoubleAttr_X) << endl;
-    cout << y.get(GRB_StringAttr_VarName) << " "
-         << y.get(GRB_DoubleAttr_X) << endl;
-    cout << z.get(GRB_StringAttr_VarName) << " "
-         << z.get(GRB_DoubleAttr_X) << endl;
+    for (int i = 0; i < size; i++){
+        if (x[i].get(GRB_DoubleAttr_X) == 1){
+          cout << "x_" + to_string(i)  << " = " << x[i].get(GRB_DoubleAttr_X) << endl;
+         
+      }
+    }
 
     cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
 
@@ -54,7 +80,8 @@ main(int   argc,
 
   return 0;
 }
-//this is outerclass class called MIP_model
+
+
 
 // int main() {
 //     // Create a graph given in the above diagram
