@@ -74,6 +74,14 @@ void MIP_model::Graph::CreateGraph(int N,int M, int L){
     }
 }
 
+// count the  number of edges in the graph
+int MIP_model::Graph::countEdges(){
+    int cpt = 0;
+    for (int i=0; i<adjList.size(); i++){
+        cpt += adjList[i].size();
+    }
+    return cpt/2;
+}
 
 
 // Performs BFS on the graph starting from vertex 'startVertex'

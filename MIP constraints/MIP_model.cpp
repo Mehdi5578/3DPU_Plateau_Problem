@@ -8,8 +8,9 @@
 int main() {
     // Create a graph given in the above diagram
     auto start = std::chrono::high_resolution_clock::now();
-    MIP_model::Graph g(286,286,96);
-    g.CreateGraph(286,286,96);
+    MIP_model::Graph g(3,3,1);
+    g.CreateGraph(3,3,1);
+    int number_edges  = g.countEdges();
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = stop - start;
     std::cout << "Time to create the graph: " << elapsed.count() << " s\n";
@@ -38,7 +39,7 @@ int main() {
     std::cout << "Number of vertices with 5 neighbors: " << cpt_5 << std::endl;
     std::cout << "Number of vertices with 6 neighbors: " << cpt_6 << std::endl;
     std::cout << "Total number of vertices: " << cpt_total << std::endl;
-
+    std::cout << "Total number of edges: " << number_edges << std::endl;
     
 
     

@@ -22,6 +22,7 @@ public:
     void printGraph(); // Print the graph
     void printMapping(); // Print the mapping of the 3D points
     int getIndex(int i, int j, int k, int N, int M, int L); // Get the index of the 3D point
+    int countEdges(); // Count the number of edges in the graph
     std::tuple<int,int,int> getCoordinates(int index, int N, int M, int L); // Get the coordinates of the 3D point
 
 
