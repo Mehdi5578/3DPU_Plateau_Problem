@@ -14,6 +14,7 @@
 class MIP_model {
 public:
     class Graph; // Forward declaration
+
 };
 
 #endif // MIP_MODEL_H
