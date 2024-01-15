@@ -51,10 +51,10 @@ main(int   argc,
     model.setObjective(Obj, GRB_MAXIMIZE);
 
     // Add constraint: x + 2 y + 3 z <= 4
-    model.addConstr(x[0]- 2 * x[1] + 3 * x[143] <= 1, "c0");
+    model.addConstr(x[0]- 2 * x[1] + 3 * x[0] <= 1, "c0");
 
-    for (int i = 0 ; i < size - 124; i++){
-          model.addConstr(x[i]  + x[i+124] <= 1, "c_" + std::__cxx11::to_string(i));
+    for (int i = 0 ; i < size; i++){
+          model.addQConstr(x[i]*x[i] <= 1, "c_" + std::__cxx11::to_string(i));
       }
 
     // Add constraint: x + y >= 1

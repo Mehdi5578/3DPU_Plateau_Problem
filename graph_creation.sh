@@ -3,8 +3,7 @@
 #SBATCH --nodes=1                 # Run all processes on a single node
 #SBATCH --ntasks=1                # Run a single task
 #SBATCH --time=01:00:00           # Time limit hrs:min:sec
-#SBATCH --output=result_%j.txt    # Standard output and error log (%j expands to jobId)
-#SBATCH --error=result_%j.txt     # Standard output and error log (%j expands to jobId)
+  # Standard output and error log (%j expands to jobId)
 
 # Load the C++ module (if required)
 module load gcc/11.3.0
@@ -18,3 +17,5 @@ g++ "${path_to_script}MIP_model.cpp" -o "${path_to_script}your_program" -I"$GURO
 cd $path_to_script
 # Execute the program and redirect output to a file
 ./your_program > output_file.txt
+
+cp output_file.txt "${path_to_script}Results/output_file.txt"
