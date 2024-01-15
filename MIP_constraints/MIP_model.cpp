@@ -3,7 +3,7 @@
 #include "CreatingGraph.cpp"
 
 #include "gurobi_c++.h"
-using namespace std;
+
 
 
 
@@ -13,12 +13,12 @@ main(int   argc,
      char *argv[])
 
 {
-  MIP_model::Graph g(208,208,96);
-  g.CreateGraph(208,208,96);
-  int number_edges  = g.countEdges();
-  int number_vertices = g.adjList.size();
-  cout << "Number of vertices: " << number_vertices << endl;
-  cout << "Number of edges: " << number_edges << endl;
+//   MIP_model::Graph g(208,208,96);
+//   g.CreateGraph(208,208,96);
+//   int number_edges  = g.countEdges();
+//   int number_vertices = g.adjList.size();
+//  std::cout << "Number of vertices: " << number_vertices <<std::endl;
+//  std::cout << "Number of edges: " << number_edges <<std::endl;
   try {
 
     // Create an environment
@@ -28,13 +28,13 @@ main(int   argc,
 
     // Create an empty model
     GRBModel model = GRBModel(env);
-    int size = 12376832;
+    int size = 10;
     // Create 3D variable
     GRBVar x[size];
 
 
     for (int i = 0; i < size; i++){
-        x[i] = model.addVar(0.0, 100,0,GRB_INTEGER, "x_" + to_string(i) );
+        x[i] = model.addVar(0.0, 100,0,GRB_INTEGER, "x_" + std::__cxx11::to_string(i) );
       }
   
 
@@ -53,8 +53,8 @@ main(int   argc,
     // Add constraint: x + 2 y + 3 z <= 4
     model.addConstr(x[0]- 2 * x[1] + 3 * x[143] <= 1, "c0");
 
-    for (int i = 0 ; i < size; i++){
-          model.addConstr(x[i]  + x[i+124] <= 1, "c1");
+    for (int i = 0 ; i < size - 124; i++){
+          model.addConstr(x[i]  + x[i+124] <= 1, "c_" + std::__cxx11::to_string(i));
       }
 
     // Add constraint: x + y >= 1
@@ -64,21 +64,20 @@ main(int   argc,
 
     for (int i = 0; i < size; i++){
         if (x[i].get(GRB_DoubleAttr_X) == 1){
-          cout << "x_" + to_string(i)  << " = " << x[i].get(GRB_DoubleAttr_X) << endl;
+         std::cout << "x_" + std::__cxx11::to_string(i)  << " = " << x[i].get(GRB_DoubleAttr_X) <<std::endl;
          
       }
     }
 
-    cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
+    std::cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) <<std::endl;
 
   } catch(GRBException e) {
-    cout << "Error code = " << e.getErrorCode() << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Error code = " << e.getErrorCode() <<std::endl;
+    std::cout << e.getMessage() <<std::endl;
   } catch(...) {
-    cout << "Exception during optimization" << endl;
+   std::cout << "Exception during optimization" <<std::endl;
   }
 
-  return 0;
 }
 
 
