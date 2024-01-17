@@ -182,7 +182,7 @@ class Resiuals():
             self.Res_graph[triple[0]] = [children[0]]
             self.Res_graph[triple[1]] = [children[1]]
             self.Res_graph[triple[2]] = [children[2]]
-            
+
 
     def detect_connex(self ,node ,colour):
         visited = set()
@@ -335,6 +335,23 @@ class Resiuals():
             
 
         self.open_paths = list(paths.values())
+
+    def detect_cycles(self):
+
+        not_visited = set(self.Res_graph.keys())
+        for p in self.open_paths:
+            not_visited.difference_update(p)
+        while not_visited:
+            node = not_visited.pop()
+            path = [node]
+            next_node  = self.Res_graph[node][0]
+            while next_node != node:
+                path.append(next_node)
+                next_node = self.Res_graph[next_node][0]
+            path.append(node)
+            not_visited.difference_update(path)
+            self.cycles.append(path)
+        
         
 
 
