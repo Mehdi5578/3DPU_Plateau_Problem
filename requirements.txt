@@ -1,12 +1,4 @@
-pyaml
 nibabel
-torch
-scipy
-tqdm
-matplotlib
-ipykernel
-ipympl
-
-
-
-
+numpy
+yaml
+...
