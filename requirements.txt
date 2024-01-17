@@ -2,3 +2,6 @@ nibabel
 numpy
 pyaml
 tqdm
+matplotlib
+scipy
+ipyml
