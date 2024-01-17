@@ -353,10 +353,8 @@ class Resiuals():
             self.cycles.append(path)
         
         
-
-
-
-
+def main():
+    pass
 
         
 

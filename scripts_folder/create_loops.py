@@ -3,6 +3,7 @@ import os
 import numpy as np
 import yaml
 import time
+import pickle
 from _3DLoops._3dpu_using_dfs import *
 import nibabel as nb
 ROOT = "../"
@@ -11,7 +12,7 @@ sys.path.append(ROOT)
 print("cleaner")
 
 # Load the YAML file
-with open(ROOT + 'paths.yaml', 'r') as file:
+with open('paths.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
 # Access paths
@@ -22,17 +23,17 @@ data = nb.load(data_path).get_fdata()
 data = np.array(data)[:,:,:,t]
 
 if __name__ == '__main__':
-   deb = time.time()
-   C = Resiuals(data)
-   C.map_nodes()
-   C.create_graph()
-   C.cycles = []
-   C.incycles = [1]*len(C.mapping)
-   C.connex =[1]*len(C.mapping)
-   C.visited = [False]*len(C.mapping)
-   C.detect_cycles()
-   fin = time.time()
-   print("the processus took",fin - deb)
+    deb = time.time()
+    C = Resiuals(data)
+    C.map_nodes()
+    C.create_graph()
+    C.untangle_graph()
+    C.fill_open_paths()
+    C.detect_cycles()
+    fin = time.time()
+    with open('Results/ph_loops.pkl',"wb") as file:
+        pickle.dump(C,file)
+    print("the processus took",fin - deb)
 
     
 
