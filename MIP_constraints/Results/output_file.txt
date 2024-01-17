@@ -1,0 +1,4 @@
+Set parameter Username
+Set parameter LogFile to value "mip1.log"
+Error code = 10009
+HostID mismatch (licensed to f7e77db5, hostid is 4c914f3a)

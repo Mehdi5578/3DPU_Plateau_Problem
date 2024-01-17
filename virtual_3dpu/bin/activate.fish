@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/lustre03/project/6064945/mehdii/3dPU/3dPU/virtual_3dpu"
+set -gx VIRTUAL_ENV "/lustre03/project/6064945/mehdii/3DPU_Plateau_Problem/virtual_3dpu"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

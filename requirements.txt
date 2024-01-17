@@ -1,4 +1,3 @@
 nibabel
 numpy
-yaml
-...
+pyaml

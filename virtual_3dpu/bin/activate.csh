@@ -8,7 +8,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV "/lustre03/project/6064945/mehdii/3dPU/3dPU/virtual_3dpu"
+setenv VIRTUAL_ENV "/lustre03/project/6064945/mehdii/3DPU_Plateau_Problem/virtual_3dpu"
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/bin:$PATH"

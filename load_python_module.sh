@@ -5,9 +5,10 @@ module load python/3.11.5
 
 #Load the variable of the path of the project in your repo
 export projects="$HOME/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem"
+python3 -m venv virtual_3dpu
 
 #Activate the virual environement
-source $projects/virtual_3dpu/bin/activate
+source /virtual_3dpu/bin/activate
 
 # Any additional commands you want to run after loading the module
 pip install -r requirements.txt

@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/lustre03/project/6064945/mehdii/3dPU/3dPU/virtual_3dpu"
+VIRTUAL_ENV="/lustre03/project/6064945/mehdii/3DPU_Plateau_Problem/virtual_3dpu"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
