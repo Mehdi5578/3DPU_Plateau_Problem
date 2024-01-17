@@ -151,6 +151,9 @@ class Resiuals():
                     self.Res_graph[self.res_ordre[Residual]].append(self.res_ordre[(i, j + 1, k - 1, 1, 1)])
 
 
+
+
+
     def create_graph(self):
         for res in self.list_res:
             self.Res_graph[self.res_ordre[res]] = []
@@ -164,6 +167,22 @@ class Resiuals():
             self.inverted_dictionnary[tuple(sorted(value))].append(key)
 
 
+
+    def untangle_graph(self):
+        triples = [value for key,value in self.inverted_dictionnary.items() if len(key) == 3]
+        doubles = [value for key,value in self.inverted_dictionnary.items() if len(key) == 2]
+        for double in tqdm(doubles):
+            assert len(self.Res_graph[double[0]]) == 2, "Error this one has not two"
+            children = self.Res_graph[double[0]]
+            self.Res_graph[double[0]] =  [children[0]]
+            self.Res_graph[double[1]] =  [children[1]]
+        for triple in tqdm(triples):
+            assert(len(self.Res_graph[triple[0]]) == 3), "Error this has not three"
+            children = self.Res_graph[triple[0]]
+            self.Res_graph[triple[0]] = [children[0]]
+            self.Res_graph[triple[1]] = [children[1]]
+            self.Res_graph[triple[2]] = [children[2]]
+            
 
     def detect_connex(self ,node ,colour):
         visited = set()
