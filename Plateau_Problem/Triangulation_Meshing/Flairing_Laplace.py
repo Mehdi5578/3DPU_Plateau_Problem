@@ -9,6 +9,7 @@ import math
 class Updating_Laplace(TriangularMesh):
     def __init__(self, boundary : PointList, desired_triangle_count):
         super().__init__(boundary, desired_triangle_count)
+        self.S
 
     def S(self,i,j):
         S = 0
@@ -20,14 +21,9 @@ class Updating_Laplace(TriangularMesh):
 
 
     def calcul_weights(self,i,j) :
-        S = 0
-        for k in self.N[i]:
-            S += (self.S(i,k))
-        
-        self.w[i,j] =  (self.S(i,j))/S
-        if math.isnan(self.w[i,j]):
-            print(i,j)
-            raise ValueError("S is negative")
+        S_ij = self.S(i, j)
+        S = sum(self.S(i, k) for k in self.N[i])
+        self.w[i,j] =  S_ij / S
 
 
          

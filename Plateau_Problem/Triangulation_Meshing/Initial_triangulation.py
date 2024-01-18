@@ -21,6 +21,7 @@ class TriangularMesh:
         self.edges = set()
         self.common_dict_vertexes = {}
         self.vertex_curvatures = dict()
+        self.mapping_index = {}
     
 
     def add_points_to_boundary(self,N = 10):
@@ -97,12 +98,13 @@ class TriangularMesh:
 
 
     def modify_N(self,i):
-        N = []
-        for tr in self.triangles :
-            if i in tr:
-                N += list(tr)
-        self.N[i] = list(set(N))
-        self.N[i].remove(i)
+        N = set()
+        for tr in self.dict_vertexes[i] :
+            for j in tr :
+                if j != i :
+                    N.add(j)
+        self.N[i] = N
+
 
 
     def canonic_representation_from_mesh(self):
@@ -113,18 +115,23 @@ class TriangularMesh:
         self.w = np.empty((N,N))
         self.v_indexes = list(range(N))
         self.mapping = list(set(K))
+        cpt = 0
+        for point in self.mapping:
+            self.mapping_index[point] = cpt
+            cpt += 1
+
         for j in self.v_indexes:
             self.dict_vertexes[j] = []
         
         self.triangles = []
-        for tr in self.mesh:
-            tri = [self.mapping.index(tuple(pt)) for pt in tr]
+        for tr in tqdm(self.mesh):
+            tri = [self.mapping_index[tuple(pt)] for pt in tr]
             self.common_dict_vertexes[tuple(sorted((tri[0],tri[1])))] = set()
             self.common_dict_vertexes[tuple(sorted((tri[0],tri[2])))] = set()
             self.common_dict_vertexes[tuple(sorted((tri[1],tri[2])))] = set() 
 
-        for tri in self.mesh:
-            triangle = [self.mapping.index(tuple(pt)) for pt in tri]
+        for tri in tqdm(self.mesh):
+            triangle = [self.mapping_index[tuple(pt)] for pt in tri]
             self.triangles.append(tuple(sorted(triangle)))
             self.dict_vertexes[triangle[0]].append(tuple(sorted(triangle)))
             self.dict_vertexes[triangle[1]].append(tuple(sorted(triangle)))
@@ -133,11 +140,11 @@ class TriangularMesh:
             self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[2])))].add(tuple(sorted(triangle)))
             self.common_dict_vertexes[tuple(sorted((triangle[1],triangle[2])))].add(tuple(sorted(triangle)))
 
-        for i in self.v_indexes:
+        for i in tqdm(self.v_indexes):
             self.modify_N(i)
 
         Outside = [tuple(k) for k in self.boundary.points]
-        Outside_vertexes = [self.mapping.index((pt)) for pt in Outside]
+        Outside_vertexes = [self.mapping_index[pt] for pt in Outside]
         self.inside_indexes = list(set(self.v_indexes) - set(Outside_vertexes))
 
     
