@@ -122,7 +122,7 @@ class Block_edges():
 
     
     def block_all_the_edges(self):
-        for tr in (self.triangles):
+        for tr in tqdm(self.triangles):
             self.detect_edges(tr)
 
 

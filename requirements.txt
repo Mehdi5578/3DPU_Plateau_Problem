@@ -4,4 +4,4 @@ pyaml
 tqdm
 matplotlib
 scipy
-ipyml
+ipympl

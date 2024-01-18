@@ -12,12 +12,8 @@ class Updating_Laplace(TriangularMesh):
 
     def S(self,i,j):
         S = 0
-        tr_i = set(self.dict_vertexes[i])
-        tr_j = set(self.dict_vertexes[j])
-        intersect = list(tr_i.intersection(tr_j))
-        if len(intersect) != 2:
-            print(intersect)
-            raise Exception("Sorry, it should have only two adjacent triangles")
+        intersect = self.common_dict_vertexes[tuple(sorted((i,j)))]
+        assert len(intersect) == 2, "Sorry, it should have only two adjacent triangles but" + str(i) +" "+ str(j) + "has" + str(len(intersect)) + "adjacent triangles"
         for tr in intersect :
             S+= self.area_3D(tr)
         return S
@@ -31,7 +27,7 @@ class Updating_Laplace(TriangularMesh):
         self.w[i,j] =  (self.S(i,j))/S
         if math.isnan(self.w[i,j]):
             print(i,j)
-            raise ValueError("S is nega tive")
+            raise ValueError("S is negative")
 
 
          
@@ -39,7 +35,7 @@ class Updating_Laplace(TriangularMesh):
 
     def update_weights(self):
         "Updates the weights of the Mesh for each iteration"
-        for j in self.inside_indexes:
+        for j in tqdm(self.inside_indexes):
             for i in self.N[j] :
                 self.calcul_weights(j,i)
                 

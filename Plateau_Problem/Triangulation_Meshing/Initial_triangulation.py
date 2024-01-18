@@ -19,6 +19,7 @@ class TriangularMesh:
         self.w = np.empty((len(self.v_indexes),len(self.v_indexes)))
         self.dict_vertexes = {} # contains the dict of all triangles associated to an index
         self.edges = set()
+        self.common_dict_vertexes = {}
         self.vertex_curvatures = dict()
     
 
@@ -61,6 +62,7 @@ class TriangularMesh:
         #split the outside quadrilaterals
         P = self.create_initial_subdivisions()
         s = int(self.m/(2*self.n) - 1/2)
+        print("s is " + str(s))
         for j in (range(s)) : 
             for i in range(self.n) :
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j,i+1]])
@@ -113,13 +115,23 @@ class TriangularMesh:
         self.mapping = list(set(K))
         for j in self.v_indexes:
             self.dict_vertexes[j] = []
+        
         self.triangles = []
+        for tr in self.mesh:
+            tri = [self.mapping.index(tuple(pt)) for pt in tr]
+            self.common_dict_vertexes[tuple(sorted((tri[0],tri[1])))] = set()
+            self.common_dict_vertexes[tuple(sorted((tri[0],tri[2])))] = set()
+            self.common_dict_vertexes[tuple(sorted((tri[1],tri[2])))] = set() 
+
         for tri in self.mesh:
             triangle = [self.mapping.index(tuple(pt)) for pt in tri]
             self.triangles.append(tuple(sorted(triangle)))
             self.dict_vertexes[triangle[0]].append(tuple(sorted(triangle)))
             self.dict_vertexes[triangle[1]].append(tuple(sorted(triangle)))
             self.dict_vertexes[triangle[2]].append(tuple(sorted(triangle)))
+            self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[1])))].add(tuple(sorted(triangle)))
+            self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[2])))].add(tuple(sorted(triangle)))
+            self.common_dict_vertexes[tuple(sorted((triangle[1],triangle[2])))].add(tuple(sorted(triangle)))
 
         for i in self.v_indexes:
             self.modify_N(i)

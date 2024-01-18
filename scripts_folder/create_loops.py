@@ -4,12 +4,14 @@ import numpy as np
 import yaml
 import time
 import pickle
+
+sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem")
+
 from _3DLoops._3dpu_using_dfs import *
 import nibabel as nb
 ROOT = "../"
 
-sys.path.append(ROOT)
-print("cleaner")
+
 
 # Load the YAML file
 with open('paths.yaml', 'r') as file:
