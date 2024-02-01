@@ -14,6 +14,7 @@ class TriangularMesh:
         self.mapping = [] #contains the mapping from I(v_indexes) to R^3
         self.triangles  = []  #each triangle is a tuple
         self.inside_indexes  = []
+        self.outside_vertexes = set()
         self.N = {} #les indices des voisins 
         self.N_vertexes = len(self.v_indexes) # the number of nodes in the meshing
         self.w = np.empty((len(self.v_indexes),len(self.v_indexes)))
@@ -22,6 +23,7 @@ class TriangularMesh:
         self.common_dict_vertexes = {}
         self.vertex_curvatures = dict()
         self.mapping_index = {}
+        self.position_triangle = dict()
     
 
     def add_points_to_boundary(self,N = 10):
@@ -121,7 +123,7 @@ class TriangularMesh:
             cpt += 1
 
         for j in self.v_indexes:
-            self.dict_vertexes[j] = []
+            self.dict_vertexes[j] = set()
         
         self.triangles = []
         for tr in tqdm(self.mesh):
@@ -129,13 +131,16 @@ class TriangularMesh:
             self.common_dict_vertexes[tuple(sorted((tri[0],tri[1])))] = set()
             self.common_dict_vertexes[tuple(sorted((tri[0],tri[2])))] = set()
             self.common_dict_vertexes[tuple(sorted((tri[1],tri[2])))] = set() 
-
+        cpt = 0
         for tri in tqdm(self.mesh):
             triangle = [self.mapping_index[tuple(pt)] for pt in tri]
-            self.triangles.append(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[0]].append(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[1]].append(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[2]].append(tuple(sorted(triangle)))
+            tr = tuple(sorted(triangle))
+            self.triangles.append(tr)
+            self.position_triangle[tr] = cpt
+            cpt = cpt + 1
+            self.dict_vertexes[triangle[0]].add(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[1]].add(tuple(sorted(triangle)))
+            self.dict_vertexes[triangle[2]].add(tuple(sorted(triangle)))
             self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[1])))].add(tuple(sorted(triangle)))
             self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[2])))].add(tuple(sorted(triangle)))
             self.common_dict_vertexes[tuple(sorted((triangle[1],triangle[2])))].add(tuple(sorted(triangle)))
@@ -144,8 +149,8 @@ class TriangularMesh:
             self.modify_N(i)
 
         Outside = [tuple(k) for k in self.boundary.points]
-        Outside_vertexes = [self.mapping_index[pt] for pt in Outside]
-        self.inside_indexes = list(set(self.v_indexes) - set(Outside_vertexes))
+        self.outside_vertexes = set([self.mapping_index[pt] for pt in Outside])
+        self.inside_indexes = list(set(self.v_indexes) - self.outside_vertexes)
 
     
     def tuple_mapping(self):
@@ -168,26 +173,33 @@ class TriangularMesh:
         return list(set(N))
 
 
+    def cross(self,a,b):
+        a1,a2,a3 = a
+        b1,b2,b3 = b
+        return np.array([a2*b3 - a3*b2 , a3*b1 - a1*b3 , a1*b2 - a2*b1])
 
+    def dot(self,a,b):
+        a1,a2,a3 = a
+        b1,b2,b3 = b
+        return a1*b1 + a2*b2 + a3*b3
 
-
-
-
+    
 
     def cotangent_angle(self, p1, p2, p3):
         """Compute the cotangent of the angle between p1-p2 and p1-p3."""
-        v1 = np.array(self.mapping[p2]) - np.array(self.mapping[p1])
-        v2 = np.array(self.mapping[p3]) - np.array(self.mapping[p1])
-        dot_product = np.dot(v1, v2)
-        cross_product_norm = np.linalg.norm(np.cross(v1, v2))
+        v1 = (self.mapping[p2]) - (self.mapping[p1])
+        v2 = (self.mapping[p3]) - (self.mapping[p1])
+        dot_product = self.dot(v1, v2)
+        cross_prodcut = self.cross(v1, v2)
+        cross_product_norm = (cross_prodcut[0]**2 + cross_prodcut[1]**2 + cross_prodcut[2]**2)**0.5
         return dot_product / cross_product_norm
 
     def voronoi(self,p1,p2,p3):
         """Compute vornoi area at point p"""
 
-        p = np.array(self.mapping[p1])
-        q = np.array(self.mapping[p2])
-        r = np.array(self.mapping[p3])
+        p = (self.mapping[p1])
+        q = (self.mapping[p2])
+        r = (self.mapping[p3])
         pr = np.linalg.norm(p-r)**2
         pq = np.linalg.norm(p-q)**2
         cot_q = self.cotangent_angle(p2,p3,p1)
@@ -244,8 +256,7 @@ class TriangularMesh:
             assert (len([a for a in tri if a != vertex]) == 2), vertex
             v2 = [a for a in tri if a != vertex][0]
             v3 = [a for a in tri if a != vertex][1]
-            tr = (v1,v2,v3)
-            area += self.area_3D(tr)
+            area += self.mixed_area(v1,v2,v3)
         return area
 
 
@@ -259,11 +270,7 @@ class TriangularMesh:
             B_i  = 0
             for j in self.N[i]:
                 
-                tr_i = set(self.dict_vertexes[i])
-                tr_j = set(self.dict_vertexes[j])
-
-                t1= list(tr_i.intersection(tr_j))[0]
-                t2= list(tr_i.intersection(tr_j))[1]
+                t1,t2 = self.common_dict_vertexes[(min(i,j),max(i,j))]
                 
 
                 alpha = [r for r in t1 if r not in (i,j)][0]

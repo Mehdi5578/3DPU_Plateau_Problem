@@ -4,36 +4,42 @@ import copy
 class Edge_Flipping(Updating_Laplace):
     def __init__(self, boundary : PointList, desired_triangle_count):
         super().__init__(boundary, desired_triangle_count)
-        self.dict_edges = dict()
+        self.position_edge = dict()
         self.L = {}
         self.L_replaced = {}
 
+
     def fill_edges(self):
         self.edges = set()
+        cpt = 0
         for tri in self.triangles:
             for i in range(3):
                 edge = tuple(sorted([tri[i], tri[(i+1)%3]]))
                 self.edges.add(edge)
-                self.dict_edges[edge] = -1
+                self.position_edge[edge] = cpt
+                cpt += 1
+
 
     def test(self,edge,tri):
         return set(edge).issubset(set(tri))
     
+
     def can_flip(self,edge):
-        triangles = [tuple(set(sorted(triangle)))  for triangle in self.triangles if self.test(edge,triangle)]
+        triangles = self.common_dict_vertexes[edge]
         return len(set(triangles)) == 2
     
-    def flip_edge(self,edge):
 
-        old_triangles = [triangle for triangle in self.triangles if self.test(edge,triangle)]
+    def flip_edge(self,edge):
+        old_triangles = self.common_dict_vertexes[edge]
         t1,t2 = old_triangles
         opposite_vertices = [v for v in t1 if v not in edge] + [v for v in t2 if v not in edge]
         new_triangles = [tuple(sorted([edge[0], opposite_vertices[0], opposite_vertices[1]])), 
                      tuple(sorted([edge[1], opposite_vertices[0], opposite_vertices[1]]))]
         return old_triangles,new_triangles
     
-    def lawson_flip(self):
 
+    def lawson_flip(self,repeat = True):
+        self.triangles = set(self.triangles)
         swaped = True
         ll = len(self.edges)
 
@@ -41,12 +47,14 @@ class Edge_Flipping(Updating_Laplace):
             
             swaped = False
 
-            for edge in (self.edges):
+            for edge in tqdm(self.edges):
                 if self.can_flip(edge):
 
                     old_tr, new_tr = self.flip_edge(edge)
-                    old_area = sum(self.area_3D(triangle) for triangle in old_tr)
-                    new_area = sum(self.area_3D(triangle) for triangle in new_tr)
+                    old1,old2 = old_tr
+                    new1,new_2 = new_tr
+                    old_area = self.area_3D(old1) + self.area_3D(old2)
+                    new_area = self.area_3D(new1) + self.area_3D(new_2)
                     
                     R = set(np.array(new_tr).reshape(-1))
                     edge1 = tuple(sorted([a for a in R if a not in edge]))
@@ -56,20 +64,22 @@ class Edge_Flipping(Updating_Laplace):
                         # D = D + new_area - old_area
                         # print("hat")
                         
-                        swaped = True
+                        swaped = repeat
+                        #change the swaped value to True for correct code
 
                         self.edges.add(edge1)
                         self.edges.remove(edge)
 
                         for tr in new_tr:
-                            self.triangles.append(tr)
+                            self.triangles.add(tr)
+                            
                         
                         for tr in old_tr :
                             self.triangles.remove(tr)
 
                         for tr in new_tr:
                             for pt in tr:
-                                self.dict_vertexes[pt].append(tuple(sorted(tr)))
+                                self.dict_vertexes[pt].add(tuple(sorted(tr)))
                         
                         for tr in old_tr:
                             for pt in tr:
@@ -78,16 +88,30 @@ class Edge_Flipping(Updating_Laplace):
                         
                         a,b = edge
                         a1,b1 = edge1
-
-                        self.N[a1].append(b1)
-                        self.N[b1].append(a1)
+                        
+                        self.N[a1].add(b1)
+                        self.N[b1].add(a1)
 
                         self.N[a].remove(b)
-                        self.N[b].remove(a)  
-                                              
-                    self.L[edge] = (new_area -  old_area, old_tr, new_tr,edge)
-                    if len(list(self.edges)) < ll:
-                        print(edge,edge1)
+                        self.N[b].remove(a)
+
+                        del self.common_dict_vertexes[tuple(sorted((a,b)))]
+                        self.common_dict_vertexes[tuple(sorted((a1,b1)))] = set(new_tr)
+
+                        self.common_dict_vertexes[tuple(sorted((a1,b)))].remove(tuple(sorted((a,a1,b))))
+                        self.common_dict_vertexes[tuple(sorted((a1,b)))].add(tuple(sorted((b,a1,b1))))
+
+                        self.common_dict_vertexes[tuple(sorted((a1,a)))].remove(tuple(sorted((a,a1,b))))
+                        self.common_dict_vertexes[tuple(sorted((a1,a)))].add(tuple(sorted((a,a1,b1))))
+
+                        assert tuple(sorted((b1,b,a))) in self.common_dict_vertexes[tuple(sorted((b1,b)))] , str((b,b1)) + str((b1,b,a))
+
+                        self.common_dict_vertexes[tuple(sorted((b1,b)))].remove(tuple(sorted((a,b1,b))))
+                        self.common_dict_vertexes[tuple(sorted((b1,b)))].add(tuple(sorted((a1,b1,b))))
+
+                        self.common_dict_vertexes[tuple(sorted((b1,a)))].remove(tuple(sorted((a,b1,b))))
+                        self.common_dict_vertexes[tuple(sorted((b1,a)))].add(tuple(sorted((a1,b1,a))))
+
 
 
                 

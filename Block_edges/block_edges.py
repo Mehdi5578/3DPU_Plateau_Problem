@@ -1,6 +1,15 @@
 from Plateau_Problem.Triangulation_Meshing.Area_minimizing import *
 from typing import *
 
+def cross(A,B):
+    assert len(A) == len(B) == 3
+    a1,a2,a3 = A[0],A[1],A[2]
+    b1,b2,b3 = B[0],B[1],B[2]
+    return np.array([a2*b3 - a3*b2, a3*b1 - a1*b3, a1*b2 - a2*b1]) 
+
+def norm(A):
+    a1,a2,a3 = A[0],A[1],A[2]
+    return np.sqrt(a1**2 + a2**2 + a3**2)
 
 
 def projection(Tr,P):
@@ -10,22 +19,31 @@ def projection(Tr,P):
     B = Tr[1]
     C = Tr[2]
     #Calcul du vecteur normal
-    N = np.cross(B-A,B-C)
-    n = N/np.linalg.norm(N)
+    N = cross(B-A,B-C)
+    n = N/norm(N)
     d = np.dot(n,P-A)
     return P - d*n
+
+def norm(A):
+    a1,a2,a3 = A[0],A[1],A[2]
+    return np.sqrt(a1**2 + a2**2 + a3**2)
 
 def area_of_triangle(Tr):
     "calcule l'aire d'un triangle array"
     p1, p2, p3 = Tr[0], Tr[1], Tr[2]
-    return 0.5 * np.linalg.norm(np.cross(p2 - p1, p3 - p1))
+    return 0.5 * norm(cross(p2 - p1, p3 - p1))
 
 def intersection(Tr,P,Q):
     "determine l'intersection entre PQ et le plan du triangle Tr "
     A = projection(Tr,P)
     B = projection(Tr,Q)
-    if (A == B).all():
+    if np.isclose(A,B).all():
         return A
+    if (A == P).all() or (A == Q).all():
+        return A
+    if (B == P).all() or (B == Q).all():
+        return B
+    
     # on cherche l'intersectionn entre BA et PQ
     else:
         ind = 2
@@ -41,7 +59,7 @@ def intersection(Tr,P,Q):
         c,c_p = tuple(list(P-A)[:ind]+list(P-A)[ind+1:])
         t = (a*c_p - a_p*c)/(a*b_p - a_p*b)
         lbda = (c*b_p - c_p*b)/(a*b_p - a_p*b)
-        assert np.isclose(P +t*(Q-P), A+lbda*(B-A)).all() ,("Tr",Tr,P +t*(Q-P), A+lbda*(B-A),"P",P,"Q",Q,"A",A,"B",B)
+        assert np.isclose(P +t*(Q-P), A+lbda*(B-A),atol =1e-10).all() ,("Tr",Tr,P +t*(Q-P), A+lbda*(B-A),"P",P,"Q",Q,"A",A,"B",B)
         return P +t*(Q-P)
 
 
@@ -65,6 +83,8 @@ def traverse(Tr,P,Q):
     n_Q = (Q - Q_proj)
     if np.dot(n_P,n_Q) > 0 :
         return False
+    if np.isclose(P_proj,P).all() and np.isclose(Q_proj,Q).all():
+        return False 
     Z = intersection(Tr,P,Q)
     return is_inside(Tr,Z) 
 
@@ -88,8 +108,7 @@ class Block_edges():
         z_coords = [self.mapping[point][2] for point in tr]
         
         Tr = [np.array(self.mapping[pt]) for pt in tr]
-        if  (np.cross(Tr[0] - Tr[1], Tr[0] - Tr[2] )==0).all():
-            print('yes')
+        if  (cross(Tr[0] - Tr[1], Tr[0] - Tr[2] )==0).all():
             return None
         # Calculate min and max for each dimension with integer bounds
         x_min = math.floor(min(x_coords))
@@ -104,21 +123,33 @@ class Block_edges():
             for y in range(y_min, y_max + 1):
                 for z in range(z_min, z_max + 1):
                     # Add edges parallel to the x-axis
-                    if x < x_max:
+                    if x <= x_max:
                         P,Q = np.array((x, y, z)), np.array((x + 1, y, z))
                         if traverse(Tr,P,Q):
                             self.blocked_edges.append((P,Q))
                     # Add edges parallel to the y-axis
-                    if y < y_max:
+                    if y <= y_max:
                         P,Q = np.array((x, y, z)), np.array((x, y + 1, z))
                         
                         if traverse(Tr,P,Q):
                             self.blocked_edges.append((P,Q))
                     # Add edges parallel to the z-axis
-                    if z < z_max:
+                    if z <= z_max:
                         P,Q = np.array((x, y, z)), np.array((x, y, z + 1))
                         if traverse(Tr,P,Q):
                             self.blocked_edges.append((P,Q))
+                    # if x >= x_min:
+                    #     P,Q = np.array((x, y, z)), np.array((x - 1, y, z))
+                    #     if traverse(Tr,P,Q):
+                    #         self.blocked_edges.append((P,Q))
+                    # if y >= y_min:
+                    #     P,Q = np.array((x, y, z)), np.array((x, y - 1, z))
+                    #     if traverse(Tr,P,Q):
+                    #         self.blocked_edges.append((P,Q))
+                    # if z >= z_min:
+                    #     P,Q = np.array((x, y, z)), np.array((x, y, z - 1))
+                    #     if traverse(Tr,P,Q):
+                    #         self.blocked_edges.append((P,Q))
 
     
     def block_all_the_edges(self):
