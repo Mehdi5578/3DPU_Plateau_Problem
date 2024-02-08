@@ -47,11 +47,14 @@ class GraphGrid3D:
                     cpt += 1
 
 
+
     def refill_edges(self):
         for edge in self.blockedges:
             i,j = edge
             index_i,index_j = self.index_mapping[tuple(i)],self.index_mapping[tuple(j)]
-            self.blocked_edges.add((min(index_i,index_j),max(index_i,index_j)))
+            edge = (min(index_i,index_j),max(index_i,index_j))
+            if edge in self.edges:
+                self.blocked_edges.add(edge)
 
    
     def get_neighbors(self,point):

@@ -40,6 +40,10 @@ class Graph_Cycles:
                 edge = (min(cycle[i],cycle[i+1]),max(cycle[i],cycle[i+1]))
                 if edge in self.dict_blocked_edges:
                     self.dict_blocked_edges[edge].append(cycle)
+        
+        for blocked_edge in G.blocked_edges:
+            if self.dict_blocked_edges[blocked_edge] == []:
+                del self.dict_blocked_edges[blocked_edge]
 
         for edge in tqdm(G.edges):
             for cycle1 in self.edge_in_cycle[edge]:
