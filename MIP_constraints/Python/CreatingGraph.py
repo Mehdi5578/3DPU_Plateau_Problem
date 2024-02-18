@@ -5,12 +5,12 @@ class GraphGrid3D:
     def __init__(self,Edges,Marked_edges):
         # Constructor code here
         
-        self.x_min = min(min(edge[1][0],edge[0][0]) for edge in Edges)
-        self.x_max = max(max(edge[1][0],edge[0][0]) for edge in Edges)
-        self.y_min = min(min(edge[1][1],edge[0][1]) for edge in Edges)
-        self.y_max = max(max(edge[1][1],edge[0][1]) for edge in Edges)
-        self.z_min = min(min(edge[1][2],edge[0][2]) for edge in Edges)
-        self.z_max = max(max(edge[1][2],edge[0][2]) for edge in Edges)
+        self.x_min = min(min(edge[1][0],edge[0][0]) for edge in Edges) - 1
+        self.x_max = max(max(edge[1][0],edge[0][0]) for edge in Edges) + 1
+        self.y_min = min(min(edge[1][1],edge[0][1]) for edge in Edges) - 1
+        self.y_max = max(max(edge[1][1],edge[0][1]) for edge in Edges) + 1
+        self.z_min = min(min(edge[1][2],edge[0][2]) for edge in Edges) - 1
+        self.z_max = max(max(edge[1][2],edge[0][2]) for edge in Edges) + 1
         self.mapping = [] 
         self.index_mapping = {}
         self.edges = {}
