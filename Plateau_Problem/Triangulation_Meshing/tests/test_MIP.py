@@ -5,13 +5,17 @@ ROOT  = "../"
 # Add current working directory to sys.path
 sys.path.append(ROOT)
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Triangle_Meshing")
-import matplotlib
-import networkx as nx
+import gurobipy as gurobi
+import pulp as pl
+solver_list = pl.listSolvers(onlyAvailable=True)
+print(solver_list)
+
 from tqdm import tqdm
 import pulp
 import pickle
 import sys
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/MIP_constraints/Python/")
+sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem")
 from CreatingCycles import *
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Plateau_Problem/Triangulation_Meshing/")
 from PointList import *
@@ -19,6 +23,8 @@ from Final_surface import *
 from Block_edges.block_edges import *
 import math
 import pulp
+import time
+import pickle
 
 def singular_loop(r,O, num_points):
     xo,yo,zo = O
@@ -32,8 +38,6 @@ def singular_loop(r,O, num_points):
 
 
 def create_loop(h,r):
-    r = 10
-    h = 5
     points1 = singular_loop(r,(0,0,0.5), 100)
     points2 = singular_loop(r,(0,0,h + 0.5), 100)
     loops = [points1,points2]
@@ -63,7 +67,7 @@ def create_loop(h,r):
 
 
 # Create a MIP problem
-def resolve_MIP(cycles,Blocked_edges,Marked_edges):
+def resolve_MIP(cycles,Blocked_edges,Marked_edges,one_by_one = True):
     problem = pulp.LpProblem("Graph Problem", pulp.LpMinimize)
     GC = Graph_Cycles(Blocked_edges,Marked_edges)
     G = GraphGrid3D(Blocked_edges,[])
@@ -74,9 +78,18 @@ def resolve_MIP(cycles,Blocked_edges,Marked_edges):
     problem += pulp.lpSum([x[i] for i in G.edges])
 
     # detect a constraints
-    new_cycles = GC.b_1
-    for cycle in new_cycles:
-        cycles.append(cycle)
+    if one_by_one:  
+        L = [len(cycle) for cycle in GC.b_1]
+        indice1 = np.argmin(L)
+        indice2 = np.argmax(L)
+        cycle2 = list(GC.b_1)[indice2]
+        cycle1 = list(GC.b_1)[indice1]
+        cycles.append(cycle1)
+        cycles.append(cycle2)
+    else:
+        new_cycles = GC.b_1
+        for cycle in new_cycles:
+            cycles.append(cycle)
     E = []
     for cycle in cycles:
         edges = []
@@ -92,7 +105,7 @@ def resolve_MIP(cycles,Blocked_edges,Marked_edges):
         problem += pulp.lpSum(x[i] for i in edge) >= 1
 
     # Solve the MIP problem
-    problem.solve(pulp.PULP_CBC_CMD(msg=False))
+    problem.solve(pulp.GUROBI(msg=False))
     
     # Print the optimal solution
     print("Optimal Solution:")
@@ -112,25 +125,55 @@ if __name__ == "__main__":
 
     # with open("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Plateau_Problem/Triangulation_Meshing/tests/edges.pickle","rb") as f:
     #     Edges = pickle.load(f)
-    Edges = create_loop(1,2)
+    one_by_one = True
+    h,r = 3,4
+    Edges = create_loop(h,r)
+    debut = time.time()
     Blocked_edges = Edges
     cycles = []
     Marked_edges = []
     GC = Graph_Cycles(Blocked_edges,Marked_edges)
+    EXP = "r.{}__h.{}".format(r,h)
+    if one_by_one:
+        EXP = EXP + "_one_by_one"
+    else:
+        EXP = EXP + "_all"
+    # Create a folder called EXP
+    os.makedirs(EXP, exist_ok=True)
     while GC.b_1 :
         print(len(GC.b_1))
         # Open the text file in append mode
-        with open("output.txt", "a") as file:
+        with open(EXP + "/Marked_edges.txt", "a") as file:
             file.write("il reste "+ "\n")
             file.write(str(len(GC.b_1)) + "\n")
+
+        # Dump cycles into a pickle file
+        with open(EXP + "/cycles.pkl", 'wb') as f:
+            pickle.dump(cycles, f)
         # Rest of your code...
+        debut1 = time.time()
         GC = Graph_Cycles(Blocked_edges,Marked_edges)
-        cycles,new_marked = resolve_MIP(cycles,Blocked_edges,Marked_edges)
+        cycles,new_marked = resolve_MIP(cycles,Blocked_edges,Marked_edges,one_by_one)
         Marked_edges = new_marked
-        with open("Marked_edges.txt", "a") as file:
+        fin1 = time.time()
+        with open(EXP + "/Marked_edges.txt", "a") as file:
+            file.write("le temps d'execution est "+ str(fin1 - debut1) + "\n")
             file.write("le nombre de cycles est "+ str(len(cycles)) +"\n")
             file.write("le nombre de marked edges est "+ str(len(Marked_edges)) +"\n")
             file.write(str(Marked_edges) + "\n")
+            file.write("-------------------------------------------" + "\n")
+    fin = time.time()
+    with open(EXP + "/Marked_edges.txt", "a") as file:
+        file.write("done")
+        file.write("le temps d'execution est "+ str(fin - debut) + "\n")
+
+
+    with open(EXP + "/marked_edges.pkl", 'wb') as f:
+        pickle.dump(Marked_edges, f)
+    with open(EXP + "/cycles.pkl", 'wb') as f:
+        pickle.dump(cycles, f)
+    with open(EXP + "/blocked_edges.pkl", 'wb') as f:
+        pickle.dump(Blocked_edges, f)
 
 
 
