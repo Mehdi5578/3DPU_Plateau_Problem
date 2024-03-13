@@ -6,6 +6,7 @@ ROOT  = "../"
 sys.path.append(ROOT)
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Triangle_Meshing")
 import gurobipy as gurobi
+from gurobipy import *
 import pulp as pl
 solver_list = pl.listSolvers(onlyAvailable=True)
 print(solver_list)
@@ -126,7 +127,7 @@ if __name__ == "__main__":
     # with open("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Plateau_Problem/Triangulation_Meshing/tests/edges.pickle","rb") as f:
     #     Edges = pickle.load(f)
     one_by_one = True
-    h,r = 3,4
+    h,r = 1,2
     Edges = create_loop(h,r)
     debut = time.time()
     Blocked_edges = Edges

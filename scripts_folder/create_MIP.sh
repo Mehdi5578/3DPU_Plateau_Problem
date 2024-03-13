@@ -8,9 +8,10 @@
 # FILEPATH: /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/scripts_folder/test_loops.sh
 # Description: This script is used for testing loops.
 
-module load gurobi
+module load StdEnv/2020
+module load gurobi/9.5.0
 
-source ~/env_gurobi/bin/activate
+source ~/env_gurobi_2/bin/activate
 
 echo "Threads ${SLURM_CPUS_ON_NODE:-1}" > gurobi.env   # set number of threads
 # /cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Core/python/3.11.5/bin/python /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Plateau_Problem/Triangulation_Meshing/tests/test_MIP.py > /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/scripts_folder/double_loop.txt
