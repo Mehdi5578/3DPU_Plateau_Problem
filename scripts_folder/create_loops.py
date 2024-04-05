@@ -36,6 +36,7 @@ if __name__ == '__main__':
     with open('Results/ph_loops.pkl',"wb") as file:
         pickle.dump(C,file)
     print("the processus took",fin - deb)
+    print("the file is stored in Results/ph_loops.pkl")
 
     
 

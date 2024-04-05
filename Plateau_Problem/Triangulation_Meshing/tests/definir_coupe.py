@@ -20,6 +20,7 @@ class simple_3D_Graph:
         self.index_mapping = {} 
         self.edges = set()
         
+        self.create_graph()
     
     def fill_points(self):
         for i in range(self.x_min,self.x_max + 1):
@@ -277,7 +278,7 @@ class Convex_hull():
         Inside_nodes[level_1] = []
         Inside_nodes[level_2] = []
         Outside_nodes = dict()
-        Outside_nodes[level_1] = []
+        Outside_nodes[ level_1] = []
         Outside_nodes[level_2] = []
         All_nodes = set(convex_hull_slice_1.nodes()).union(set(convex_hull_slice_2.nodes()))
         for edge in tqdm(Border_edges):
@@ -421,7 +422,7 @@ class Convex_hull():
         reducible_nodes = [node for node in self.all_reducible_corners(elastic_band,axe) if node not in inside_nodes and elastic_band.degree(node) < 3]
 
         while reducible_nodes:
-            print("reducible_nodes",reducible_nodes)
+            
 
             node_to_remove = reducible_nodes.pop()
 
@@ -435,8 +436,45 @@ class Convex_hull():
         
 
             
+    def convex_hull_3D_full(self):
+        axe = 2
+        Convex = dict()
+        Edges = set()
+        for z in range(self.z_min+1,self.z_max-1):
+            level1 = z
+            level2 = z+1
+            convex_hull_slice_1 = self.convex_hull_2D(axe,level1)
+            convex_hull_slice_2 = self.convex_hull_2D(axe,level2)
+            convex_hull_slice_1 = clean_slice(convex_hull_slice_1)
+            convex_hull_slice_2 = clean_slice(convex_hull_slice_2)
+            inside_nodes,_ = self.link_slices(convex_hull_slice_1,convex_hull_slice_2,axe)
+            inside_nodes_1 = inside_nodes[level1]
+            inside_nodes_2 = inside_nodes[level2]
+
+            self.elastic_band(inside_nodes_1,convex_hull_slice_1,axe)
+            self.elastic_band(inside_nodes_2,convex_hull_slice_2,axe)
             
-            
+            Convex[level1] = convex_hull_slice_1
+            Convex[level2] = convex_hull_slice_2
+
+            Border_edges = self.set_edges_slice(convex_hull_slice_1,convex_hull_slice_2,axe)
+            Edges = Edges.union(Border_edges) 
+        # Fill the first and last layers
+        self.elastic_band({},Convex[self.z_min+1],axe)
+        self.elastic_band({},Convex[self.z_max-1],axe)
+        
+        G_full_convex_hull_graph = nx.Graph()
+        for edge in Edges:
+            u,v = edge
+            G_full_convex_hull_graph.add_edge(u,v)
+
+        for z in range(self.z_min+1,self.z_max):
+            convex_hull_slice = Convex[z]
+            for edge in convex_hull_slice.edges():
+                u,v = edge
+                G_full_convex_hull_graph.add_edge(u,v)
+        
+        return G_full_convex_hull_graph
         
            
 
@@ -444,7 +482,7 @@ class Convex_hull():
             
     
                 
-            
+     
     
     def convex_set_edges(self,set_edges,axe):
         levels = []
@@ -454,14 +492,55 @@ class Convex_hull():
             levels.append(self.Graph.mapping[v][axe])
         assert len(set(levels)) == 2, "The set of edges is not a slice"
         
+    def in_same_square(self,e1,e2):
+        u1,v1 = e1
+        u2,v2 = e2
+        squre_graph = self.graph_dense.subgraph([u1,v1,u2,v2])
+        cycles = nx.cycle_basis(squre_graph)
+        if len(cycles) == 1:
+            return True
+        elif len(set([u1,v1,u2,v2])) == 3:
+            set_x = set()
+            set_y = set()
+            set_z = set()
+            for point in [u1,v1,u2,v2]:
+                x,y,z = self.Graph.mapping[point]
+                set_x.add(x)
+                set_y.add(y)
+                set_z.add(z)
+            if len(set_x) == 1 and len(set_y) == 1:
+                return False
+            if len(set_x) == 1 and len(set_z) == 1:
+                return False
+            if len(set_y) == 1 and len(set_z) == 1:
+                return False
+            return True
+        return False
 
-    
+
+
+    def new_graph(self,new_cut):
+        Couple_edges = []
+        for e1 in new_cut:
+            for e2 in new_cut:
+                if e1 != e2:
+                    if self.in_same_square(e1,e2):
+                        Couple_edges.append((e1,e2))
+
+        graph_edges = nx.Graph()
+
+        for e1,e2 in Couple_edges:
+            n1 = (np.array(self.Graph.mapping[e1[0]]) + np.array(self.Graph.mapping[e1[1]]))/2
+            n2 = (np.array(self.Graph.mapping[e2[0]]) + np.array(self.Graph.mapping[e2[1]]))/2
+            graph_edges.add_edge(tuple(n1),tuple(n2))
+        return graph_edges
+        
 
 
 
 ## End of the class Convex_hull
                 
-def _in_same_square(convex_hull_slice,e1,e2):
+def in_same_square(convex_hull_slice,e1,e2):
     u1,v1 = e1
     u2,v2 = e2
     squre_graph = convex_hull_slice.subgraph([u1,v1,u2,v2])
@@ -513,7 +592,86 @@ def clean_slice(convex_hull_slice):
     
     return new_graph
 
+def color(graph):
+    convex_hull_nodes = graph.nodes()
+    visited = set(convex_hull_nodes)
+    v1,v2 = np.random.choice(convex_hull_nodes,size=2)
+    visited.remove(v1)
+    visited.remove(v2)
+    layer_1 = set([v1])
+    layer_2 = set([v2])
+    color_1 = set([v1])
+    color_2 = set([v2])
+    while visited:
+        new_layer_1 = set()
+        new_layer_2 = set()
+        for v in layer_1:
+            for u in graph.neighbors(v):
+                if u in visited:
+                    visited.remove(u)
+                    new_layer_1.add(u)
+    
+        for v in layer_2:
+            for u in graph.neighbors(v):
+                if u in visited:
+                    visited.remove(u)
+                    new_layer_2.add(u)
 
+        layer_1 = new_layer_1
+        layer_2 = new_layer_2
+
+        color_1 = color_1.union(layer_1)
+        color_2 = color_2.union(layer_2)
     
-    
-    
+    return color_1,color_2
+
+def cut(out_graph,dense_edges,cap):
+    color1,color2 = color(out_graph)
+    G_flot = nx.Graph()
+    s = -1
+    t = -2
+
+    for p in color1:
+        G_flot.add_edge(s,p,capacity=cap)
+        
+    for p in color2:    
+        G_flot.add_edge(p,t,capacity = cap)
+
+    for e in dense_edges:
+        u,v = e
+        G_flot.add_edge(u,v,capacity=1)
+
+
+
+    cut_value, (set_S, set_T) = nx.minimum_cut(G_flot, s, t)
+
+    # Find the edges in the minimum cut
+    min_cut_edges = [(u, v) for u, v in G_flot.edges() if (u in set_S and v in set_T) or (v in set_S and u in set_T)]
+    return min_cut_edges
+
+def in_same_square(self,e1,e2):
+    u1,v1 = e1
+    u2,v2 = e2
+    squre_graph = self.graph_dense.subgraph([u1,v1,u2,v2])
+    cycles = nx.cycle_basis(squre_graph)
+    if len(cycles) == 1:
+        return True
+    elif len(set([u1,v1,u2,v2])) == 3:
+        set_x = set()
+        set_y = set()
+        set_z = set()
+        for point in [u1,v1,u2,v2]:
+            x,y,z = self.Graph.mapping[point]
+            set_x.add(x)
+            set_y.add(y)
+            set_z.add(z)
+        if len(set_x) == 1 and len(set_y) == 1:
+            return False
+        if len(set_x) == 1 and len(set_z) == 1:
+            return False
+        if len(set_y) == 1 and len(set_z) == 1:
+            return False
+        return True
+    return False
+
+
