@@ -6,6 +6,16 @@ import nibabel as nb
 ROOT = "../"
 from CreatingCycles import *
 
+
+def transform_res_to_point(res):
+    x,y,z,ax,_ = res
+    if ax == 0:
+        return (x,y+0.5,z+0.5)
+    elif ax == 1:
+        return (x+0.5,y,z+0.5)
+    else:
+        return (x+0.5,y+0.5,z)
+
 class Refine_cycle:
     def __init__(self, cyc):
         self.squares = self.transform_to_squares(cyc)
@@ -47,6 +57,7 @@ class Refine_cycle:
             squares.append(square)
         return squares
     
+
     
 
 
@@ -113,6 +124,56 @@ class Refine_cycle:
             
             graph_edges.add_edge(tuple(n1),tuple(n2))
         return graph_edges
+
+
+
+class Clean_Cycles:
+
+    def __init__(self,data):
+        self.data = data
+        self.Mapping_index_data = dict()
+
+        for i in range(len(data.mapping)):
+            self.Mapping_index_data[data.mapping[i]] = i
+        
+        self.data.create_graph()
+    
+    def graph_of_residuals(self,cycle):
+        """
+        Gives a directed subgraph of the inital Graph Res_graph in data
+        """
+        new_graph = nx.DiGraph()
+        for point in cycle:
+            Edges_point = self.data.Res_graph[point]
+            for edge in Edges_point:
+                if edge in cycle:
+                    new_graph.add_edge(point,edge)
+        return new_graph
+
+    
+    def detangle_new_graph(self,cycle):
+        """
+        This function takes a graph and returns the edges that point to more than two edges
+        """
+        new_graph = self.graph_of_residuals(cycle)
+        Edges_to_remove = []
+        Edges_of_cycle = [set(cycle[i:i+2]) for i in range(len(cycle)-1)]
+        for point in new_graph.nodes:
+            if new_graph.out_degree(point) == 2:
+                print(point)
+                p1,p2 = list(new_graph.successors(point))
+                if {point,p1} in Edges_of_cycle:
+                    Edges_to_remove.append((point,p1))
+                else:
+                    assert {point,p2} in Edges_of_cycle
+                    Edges_to_remove.append((point,p2))
+        return Edges_to_remove
+    
+
+
+
+
+
     
     
 
