@@ -8,7 +8,7 @@ import pickle
 from typing import Union, Optional
 from numpy.typing import NDArray
 from tqdm import tqdm
-
+import networkx as nx
 dim = int(3)
 
 
@@ -33,6 +33,7 @@ class Resiuals():
         self.cycles = []
         self.visited = []
         self.incycles = []
+        self.graph_res_networkx = nx.DiGraph()
         self.starting_open_paths = []
         self.inverted_dictionnary = dict()
 
@@ -70,6 +71,7 @@ class Resiuals():
         self.mapping = self.list_res
         self.res_ordre = {residual: index for index, residual in enumerate(self.mapping)}
 
+    def 
 
     def nodes_of_not_boundary(self, Residual):
         "Add the sons of the Residual"  
@@ -182,6 +184,31 @@ class Resiuals():
             self.Res_graph[triple[0]] = [children[0]]
             self.Res_graph[triple[1]] = [children[1]]
             self.Res_graph[triple[2]] = [children[2]]
+    
+    def create_graph_networkx(self):
+        for key in self.Res_graph.keys():
+            for value in self.Res_graph[key]:
+                self.graph_res_networkx.add_edge(key,value)
+
+    def reduire_cycle(self,cycle):
+        Cycles = []
+        subgraph = self.graph_res_networkx.subgraph(cycle).copy()
+        base_cycle = nx.cycle_basis(subgraph)
+        while len(base_cycle) > 0:
+            smallest_base_cycle = min(base_cycle, key=len)
+            Cycles.append(smallest_base_cycle + [smallest_base_cycle[0]])
+            subgraph.remove_node(smallest_base_cycle[0])
+            base_cycle = nx.cycle_basis(subgraph)
+        return Cycles
+
+    def reduire_cycles(self):
+        new_Cycles = []
+        for cycle in tqdm(self.cycles):
+            Cycles = self.reduire_cycle(cycle)
+            for cycle in Cycles:
+                new_Cycles.append(cycle)
+        self.cycles = new_Cycles
+    
 
 
     def detect_connex(self ,node ,colour):
@@ -305,7 +332,6 @@ class Resiuals():
         self.open_paths = []
         self.fill_starting_open_paths()
         layer = set(self.starting_open_paths)
-        print(layer)
         antecedant = dict()
         paths = dict()
         visited = set()
@@ -315,8 +341,6 @@ class Resiuals():
         cpt = 0
         while layer != {-1}:
             cpt += 1
-            if cpt % 1 == 0:
-                print(len(layer))
             new_layer = set()
             for point in (layer):
                 if point != -1 :

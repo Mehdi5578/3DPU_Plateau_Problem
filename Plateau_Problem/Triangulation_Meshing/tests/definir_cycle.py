@@ -1,4 +1,4 @@
-from definir_coupe import *
+from Plateau_Problem.Triangulation_Meshing.tests.definir_coupe import *
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem")
 from _3DLoops._3dpu_using_dfs import *
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/MIP_constraints/Python/")
