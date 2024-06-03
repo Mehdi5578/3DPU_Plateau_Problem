@@ -21,10 +21,12 @@ with open(ROOT + 'paths.yaml', 'r') as file:
 data_path = config['paths']["data_big"]
 
 t = 1
+print("Starting the extraction processus")
 data = nb.load(data_path).get_fdata()
 data = np.array(data)[:,:,:,t]
 
 if __name__ == '__main__':
+    print("Starting the loop creation processus")
     deb = time.time()
     C = Resiuals(data)
     C.map_nodes()
@@ -33,9 +35,8 @@ if __name__ == '__main__':
     C.untangle_graph()
     C.fill_open_paths()
     C.detect_cycles()
-    C.reduire_cycles()
     fin = time.time()
-    with open('Results/ph_loops.pkl',"wb") as file:
+    with open('/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Results/ph_loops.pkl',"wb") as file:
         pickle.dump(C,file)
     print("the processus took",fin - deb)
     print("the file is stored in Results/ph_loops.pkl")

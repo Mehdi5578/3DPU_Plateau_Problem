@@ -65,7 +65,7 @@ class Updating_Laplace(TriangularMesh):
     def update_weights(self):
         "Updates the weights of the Mesh for each iteration"
         self.fill_area_dict()
-        for j in tqdm(self.inside_indexes):
+        for j in (self.inside_indexes):
             for i in self.N[j] :
                 self.calcul_weights(j,i)
                 

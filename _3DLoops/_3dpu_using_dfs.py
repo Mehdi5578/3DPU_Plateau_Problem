@@ -6,7 +6,7 @@ import csv
 import os
 import pickle
 from typing import Union, Optional
-from numpy.typing import NDArray
+
 from tqdm import tqdm
 import networkx as nx
 dim = int(3)
@@ -36,7 +36,7 @@ class Resiuals():
         self.graph_res_networkx = nx.DiGraph()
         self.starting_open_paths = []
         self.inverted_dictionnary = dict()
-
+        self.closing_edges = []
         self.open_paths = []
 
     def wrap(self,phi) :
@@ -45,7 +45,7 @@ class Resiuals():
     def grad(self,psi, a: int):
         return np.diff(psi, axis=a)
 
-    def wrap_grad(self,psi: NDArray, a: int):
+    def wrap_grad(self,psi, a: int):
         return self.wrap(self.grad(psi, a))
 
     def residuals(self, a: int):
@@ -71,7 +71,6 @@ class Resiuals():
         self.mapping = self.list_res
         self.res_ordre = {residual: index for index, residual in enumerate(self.mapping)}
 
-    def 
 
     def nodes_of_not_boundary(self, Residual):
         "Add the sons of the Residual"  
@@ -356,12 +355,31 @@ class Resiuals():
                     new_layer.add(next_node)
             assert layer != new_layer, "there is a repetition"
             layer = new_layer
-            
 
         self.open_paths = list(paths.values())
+        for cyc in self.open_paths:
+            self.graph_res_networkx.add_edge(cyc[-1],cyc[0])
+            self.closing_edges.append((cyc[-1],cyc[0]))
+        
+        # print("now separating the open paths")
+        # new_cycles = []
+        # for cycle in tqdm(self.open_paths):
+        #     new_cycles += self.untangle_2(cycle)
+        
+        # self.open_paths = []
+
+        # for open_path in tqdm(new_cycles):
+        #     ind = 0
+        #     if open_path[ind+1] not in self.graph_res_networkx.neighbors(open_path[ind]):
+        #         self.open_paths.append(open_path[::-1])
+        #     else:
+        #         self.open_paths.append(open_path)
+    
+        
+        
+
 
     def detect_cycles(self):
-
         not_visited = set(self.Res_graph.keys())
         for p in self.open_paths:
             not_visited.difference_update(p)
@@ -370,11 +388,142 @@ class Resiuals():
             path = [node]
             next_node  = self.Res_graph[node][0]
             while next_node != node:
+                if not self.Res_graph[next_node]:
+                    print(next_node)
                 path.append(next_node)
                 next_node = self.Res_graph[next_node][0]
             path.append(node)
             not_visited.difference_update(path)
             self.cycles.append(path)
+        new_cycles = []
+        for cycle in tqdm(self.cycles):
+            new_cycles += self.untangle_2(cycle)
+
+        self.cycles = []
+
+        for cycle in tqdm(new_cycles):
+            ind = 0
+            if cycle[ind+1] not in self.graph_res_networkx.neighbors(cycle[ind]):
+                self.cycles.append(cycle[::-1])
+            else:
+                self.cycles.append(cycle)
+
+
+
+    
+    def untangle_partial(self,cycle):
+        Cycle_edges = set([(cycle[i],cycle[(i+1)%len(cycle)]) for i in range(len(cycle))])
+        subgraph = self.graph_res_networkx.subgraph(cycle).copy()
+        degree_2 = [point for point in subgraph if subgraph.out_degree(point) == 2]
+        
+        old_edges = []
+        new_edges = []
+        Dict_couples = dict()
+        for point in degree_2:
+            e1,e2 = subgraph.neighbors(point)
+            if (min(e1,e2),max(e1,e2)) in Dict_couples:
+                Dict_couples[(min(e1,e2),max(e1,e2))].append(point)
+            else:
+                Dict_couples[(min(e1,e2),max(e1,e2))] = [point]
+        couple = list(Dict_couples)[0]
+        s1,s2 = couple
+        if len(Dict_couples[couple]) == 1:
+            print(cycle)
+        e1,e2 = Dict_couples[couple]
+
+        if (e1,s1) in Cycle_edges :
+            subgraph.remove_edge(e1,s1)
+            subgraph.remove_edge(e2,s2)
+            old_edges += [(e1,s1),(e2,s2)]
+            new_edges += [(e2,s1),(e1,s2)]
+        else:
+            assert (e1,s2) in Cycle_edges, ((e1,s2),cycle,(e1,s1))
+            subgraph.remove_edge(e1,s2)
+            subgraph.remove_edge(e2,s1)
+            old_edges += [(e1,s2),(e2,s1)]
+            new_edges += [(e1,s1),(e2,s2)]
+        
+            # degree_3 = [point for point in subgraph if subgraph.out_degree(point) == 3]
+            # Dict_trouples = dict()
+
+            # for point in degree_3:
+            #     e1,e2,e3 = subgraph.neighbors(point)
+            #     e1,e2,e3 = sorted([e1,e2,e3])
+            #     if (e1,e2,e3) in Dict_trouples:
+            #         Dict_trouples[(e1,e2,e3)].append(point)
+            #     else:
+            #         Dict_trouples[(e1,e2,e3)] = [point]
+            
+
+            # if Dict_trouples:
+            #     trouple = list(Dict_trouples.keys())[0]
+            #     s1,s2,s3 = trouple
+            #     e1,e2,e3 = Dict_trouples[trouple]
+            #     possible_edges = [(e,s) for e in [e1,e2,e3] for s in [s1,s2,s3]]
+            #     subgraph.remove_edges_from(possible_edges)
+            #     to_keep_cycles = [edge for edge in possible_edges if nx.has_path(subgraph,edge[1],edge[0]) ]
+            #     subgraph.add_edges_from(to_keep_cycles)
+
+        return subgraph,new_edges,old_edges
+    
+    def is_cycle(self,subgraph):
+        return all(subgraph.out_degree(point) != 2 for point in subgraph)
+
+    def untangle_2(self,cycle):
+        cycles_to_keep = []
+        cycles_to_test = []
+        if self.is_cycle(nx.subgraph(self.graph_res_networkx,cycle)):
+            cycles_to_keep.append(cycle)
+        else:
+            cycle = cycle[::-1]
+            cycles_to_test.append(cycle)
+
+        while cycles_to_test:
+            C_C = []
+            for c in (cycles_to_test):
+                if c[0] != c[-1]:
+                    c = c + [c[0]]
+                if c[1] not in self.graph_res_networkx.neighbors(c[0]):
+                    c = c[::-1]
+                assert c[1] in self.graph_res_networkx.neighbors(c[0]),c
+                _,new_edges,old_edges = self.untangle_partial(c)
+                assert len(old_edges) == len(new_edges) and len(old_edges) == 2, c
+                edges_cycle = [(c[i],c[i+1]) for i in range(len(c)-1) if (c[i],c[(i+1)]) not in old_edges]
+                edges_cycle = edges_cycle + new_edges
+                graph_cycle = nx.Graph()
+                graph_cycle.add_edges_from(edges_cycle)
+                if len(list(nx.cycle_basis(graph_cycle))) != 2:
+                    print("Error in number of cycles in untangle_2")
+                    if  len(list(nx.connected_components(graph_cycle))) != 2 or 1 not in [len(comp) for comp in nx.connected_components(graph_cycle)]:
+                        print("Error in number of connected components")
+                        print(list(nx.connected_components(graph_cycle)))
+                        print(list(nx.cycle_basis(graph_cycle)),c,cycle)
+            
+                for b in list(nx.cycle_basis(graph_cycle)):
+                    C_C.append(b)
+                
+            cycles_to_test = []
+            for c in C_C:
+                sub_c = nx.subgraph(self.graph_res_networkx,c)
+                if self.is_cycle(sub_c):
+                    cycles_to_keep.append(c)
+                else:
+                    cycles_to_test.append(c)
+        
+        return cycles_to_keep
+    
+
+
+    
+        
+
+        
+    
+    
+
+
+
+
         
         
 def main():

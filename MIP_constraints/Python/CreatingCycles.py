@@ -14,7 +14,8 @@ class Graph_Cycles:
         self.mapping_GC = G.mapping
         self.edges = G.edges
         self.marked_edges = Marked_edges
-        self.blocked_edges = G.blocked_edges
+
+        self.blocked_edges = set(G.blocked_edges)
         new_G = nx.Graph()
         self.b_1 = set()
         self.b_2 = set()
@@ -26,9 +27,10 @@ class Graph_Cycles:
         self.cycles = cycles_base
 
         for cycle in self.cycles:
-            if self.f(cycle) == 1:
+            parite = self.f(cycle)
+            if parite == 1:
                 self.b_1.add(cycle)
-            elif self.f(cycle) == 0:
+            elif parite == 0:
                 self.b_2.add(cycle)
         
     def f(self,cycle):
@@ -37,6 +39,7 @@ class Graph_Cycles:
             edge = (min(cycle[i],cycle[(i+1)%len(cycle)]),max(cycle[i],cycle[(i+1)%len(cycle)]))
             cpt = cpt + (edge in self.blocked_edges)
         return cpt % 2
+
 
         # for i in range(len(cycles_base)):
         #     self.cycles_index[cycles_base[i]] = i

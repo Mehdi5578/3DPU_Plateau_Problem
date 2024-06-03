@@ -57,5 +57,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "unordered_set": "cpp"
-    }
+    },
+    "python.analysis.autoImportCompletions": true
 }
