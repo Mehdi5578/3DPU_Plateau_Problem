@@ -6,7 +6,7 @@ import csv
 import os
 import pickle
 from typing import Union, Optional
-
+import multiprocessing as mp
 from tqdm import tqdm
 import networkx as nx
 dim = int(3)
@@ -326,7 +326,7 @@ class Resiuals():
         
 
 
-    def fill_open_paths(self):
+    def fill_open_paths(self,separate = False,num_batches = 0,num_workers = 0):
         self.incycles = [False]*len(self.mapping)
         self.open_paths = []
         self.fill_starting_open_paths()
@@ -360,21 +360,28 @@ class Resiuals():
         for cyc in self.open_paths:
             self.graph_res_networkx.add_edge(cyc[-1],cyc[0])
             self.closing_edges.append((cyc[-1],cyc[0]))
-        
-        # print("now separating the open paths")
-        # new_cycles = []
-        # for cycle in tqdm(self.open_paths):
-        #     new_cycles += self.untangle_2(cycle)
-        
-        # self.open_paths = []
 
-        # for open_path in tqdm(new_cycles):
-        #     ind = 0
-        #     if open_path[ind+1] not in self.graph_res_networkx.neighbors(open_path[ind]):
-        #         self.open_paths.append(open_path[::-1])
-        #     else:
-        #         self.open_paths.append(open_path)
-    
+        if separate:
+            print("now separating the open paths")
+            # new_cycles = []
+            # for cycle in tqdm(self.open_paths):
+            #     new_cycles += self.untangle_2(cycle)
+            
+            batches,_ = self.seprate_batches(num_batches)
+            batches = list(batches.values())
+            with mp.Pool(4) as pool:
+                results = list(tqdm(pool.imap(self.process_batch, batches), total=num_batches))
+
+            new_cycles = [cycle for sublist in results for cycle in sublist]            
+            self.open_paths = []
+
+            for open_path in tqdm(new_cycles):
+                ind = 0
+                if open_path[ind+1] not in self.graph_res_networkx.neighbors(open_path[ind]):
+                    self.open_paths.append(open_path[::-1])
+                else:
+                    self.open_paths.append(open_path)
+        
         
         
 
@@ -409,7 +416,49 @@ class Resiuals():
                 self.cycles.append(cycle)
 
 
+    def process_batch(self,batch):
+        new_cycles = []
+        for cycle in batch:
+            new_cycles += self.untangle_2(cycle)
+        return new_cycles
+    
+    def seprate_batches(self,num_batches):
+        batches = dict()
+        size_batches = dict()
+        batches_to_fill = set(list(range(num_batches)))
+        batches_empty = set(list(range(num_batches)))
 
+        for i in range((num_batches)):
+            batches[i] = []
+            size_batches[i] = 0
+
+        mean_size = sum([len(cycle) for cycle in self.open_paths])/num_batches
+        print(mean_size)
+        print(batches_to_fill)
+
+        self.open_paths = (sorted(self.open_paths,key = lambda x: len(x)))[::-1]
+        
+        for open_path in tqdm(self.open_paths):
+            size = len(open_path)
+            if size > mean_size:
+                batch = batches_empty.pop()
+                batches[batch].append(open_path)
+                size_batches[batch] += size
+                batches_to_fill.remove(batch)
+            else:
+                batches_possible = [batch for batch in batches_to_fill if size_batches[batch] + size < mean_size]
+                assert len(batches_possible) > 0, "Error in the batches"
+                batch = batches_possible[0]
+                
+                if batch in batches_empty:
+                    batches_empty.remove(batch)
+                batches[batch].append(open_path)
+                size_batches[batch] += size
+                if size_batches[batch] > mean_size:
+                    batches_to_fill.remove(batch)
+            
+            
+        return batches
     
     def untangle_partial(self,cycle):
         Cycle_edges = set([(cycle[i],cycle[(i+1)%len(cycle)]) for i in range(len(cycle))])

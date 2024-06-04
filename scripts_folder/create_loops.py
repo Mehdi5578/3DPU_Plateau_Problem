@@ -20,12 +20,13 @@ with open(ROOT + 'paths.yaml', 'r') as file:
 # Access paths
 data_path = config['paths']["data_big"]
 
-t = 1
-print("Starting the extraction processus")
-data = nb.load(data_path).get_fdata()
-data = np.array(data)[:,:,:,t]
+
 
 if __name__ == '__main__':
+    t = 1
+    print("Starting the extraction processus")
+    data = nb.load(data_path).get_fdata()
+    data = np.array(data)[:,:,:,t]
     print("Starting the loop creation processus")
     deb = time.time()
     C = Resiuals(data)
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     C.create_graph()
     C.create_graph_networkx()
     C.untangle_graph()
-    C.fill_open_paths()
+    C.fill_open_paths(separate=True,num_batches= 100,num_workers= 10)
     C.detect_cycles()
     fin = time.time()
     with open('/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Results/ph_loops.pkl',"wb") as file:
