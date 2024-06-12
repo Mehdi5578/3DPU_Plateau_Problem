@@ -326,7 +326,7 @@ class Resiuals():
         
 
 
-    def fill_open_paths(self,separate = False,num_batches = 0,num_workers = 0):
+    def fill_open_paths(self,separate = False,num_workers = 64):
         self.incycles = [False]*len(self.mapping)
         self.open_paths = []
         self.fill_starting_open_paths()
@@ -353,6 +353,7 @@ class Resiuals():
                     else:
                         next_node = -1
                     new_layer.add(next_node)
+            
             assert layer != new_layer, "there is a repetition"
             layer = new_layer
 
@@ -360,16 +361,19 @@ class Resiuals():
         for cyc in self.open_paths:
             self.graph_res_networkx.add_edge(cyc[-1],cyc[0])
             self.closing_edges.append((cyc[-1],cyc[0]))
-
+        mean_size = sum([len(cycle) for cycle in self.open_paths])/len(self.open_paths)
+        num_batches =int(sum([len(cycle) for cycle in self.open_paths])/len(max(self.open_paths,key = lambda x: len(x))) + 1)
+        print(num_batches)
         if separate:
             print("now separating the open paths")
             # new_cycles = []
             # for cycle in tqdm(self.open_paths):
             #     new_cycles += self.untangle_2(cycle)
+
             
-            batches,_ = self.seprate_batches(num_batches)
+            batches = self.seprate_batches(num_batches)
             batches = list(batches.values())
-            with mp.Pool(4) as pool:
+            with mp.Pool(num_workers) as pool:
                 results = list(tqdm(pool.imap(self.process_batch, batches), total=num_batches))
 
             new_cycles = [cycle for sublist in results for cycle in sublist]            
@@ -432,30 +436,36 @@ class Resiuals():
             batches[i] = []
             size_batches[i] = 0
 
-        mean_size = sum([len(cycle) for cycle in self.open_paths])/num_batches
-        print(mean_size)
-        print(batches_to_fill)
+        mean_size = sum([len(cycle) for cycle in self.open_paths])/num_batches + 1
 
         self.open_paths = (sorted(self.open_paths,key = lambda x: len(x)))[::-1]
         
         for open_path in tqdm(self.open_paths):
             size = len(open_path)
+           
+
             if size > mean_size:
                 batch = batches_empty.pop()
                 batches[batch].append(open_path)
                 size_batches[batch] += size
-                batches_to_fill.remove(batch)
+                if size_batches[batch] > mean_size:
+                    batches_to_fill.remove(batch)
+
+
             else:
-                batches_possible = [batch for batch in batches_to_fill if size_batches[batch] + size < mean_size]
+                batches_possible = [batch for batch in batches_to_fill if size_batches[batch] + size <= mean_size]
                 assert len(batches_possible) > 0, "Error in the batches"
                 batch = batches_possible[0]
-                
                 if batch in batches_empty:
                     batches_empty.remove(batch)
                 batches[batch].append(open_path)
                 size_batches[batch] += size
                 if size_batches[batch] > mean_size:
                     batches_to_fill.remove(batch)
+
+
+            
+
             
             
         return batches

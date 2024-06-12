@@ -1,0 +1,2 @@
+The Initial edges are loaded successfully of size 753
+Set parameter TokenServer to value "license1.computecanada.ca"

@@ -65,7 +65,6 @@ class TriangularMesh:
         #split the outside quadrilaterals
         P = self.create_initial_subdivisions()
         s = int(self.m/(2*self.n) - 1/2)
-        print("s is " + str(s))
         for j in (range(s)) : 
             for i in range(self.n) :
                 self.mesh.append([P[j,i],P[j+1,i+1],P[j,i+1]])
@@ -126,13 +125,13 @@ class TriangularMesh:
             self.dict_vertexes[j] = set()
         
         self.triangles = []
-        for tr in tqdm(self.mesh):
+        for tr in (self.mesh):
             tri = [self.mapping_index[tuple(pt)] for pt in tr]
             self.common_dict_vertexes[tuple(sorted((tri[0],tri[1])))] = set()
             self.common_dict_vertexes[tuple(sorted((tri[0],tri[2])))] = set()
             self.common_dict_vertexes[tuple(sorted((tri[1],tri[2])))] = set() 
         cpt = 0
-        for tri in tqdm(self.mesh):
+        for tri in (self.mesh):
             triangle = [self.mapping_index[tuple(pt)] for pt in tri]
             tr = tuple(sorted(triangle))
             self.triangles.append(tr)
@@ -145,7 +144,7 @@ class TriangularMesh:
             self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[2])))].add(tuple(sorted(triangle)))
             self.common_dict_vertexes[tuple(sorted((triangle[1],triangle[2])))].add(tuple(sorted(triangle)))
 
-        for i in tqdm(self.v_indexes):
+        for i in (self.v_indexes):
             self.modify_N(i)
 
         Outside = [tuple(k) for k in self.boundary.points]
