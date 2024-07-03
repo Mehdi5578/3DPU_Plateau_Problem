@@ -1,6 +1,0 @@
-info  : grbgetkey version 11.0.0, build v11.0.0rc2
-info  : Platform is linux64 (linux) - "CentOS Linux 7 (Core)"
-info  : Contacting Gurobi license server...
-info  : Communication failed, check your network connection or set variable HTTPS_PROXY if you need a proxy
-info  : Run 'grbgetkey --help' for more details
-error : dial tcp 34.199.178.241:443: connect: connection refused

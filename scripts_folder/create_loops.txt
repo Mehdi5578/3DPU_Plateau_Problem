@@ -1,5 +1,0 @@
-Starting the extraction processus
-(100, 100, 96)
-Starting the loop creation processus
-27
-now separating the open paths
