@@ -7,3 +7,4 @@ scipy
 ipympl
 networkx==2.5
 gurobipy
+scikit-image
