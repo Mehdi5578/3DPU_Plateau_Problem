@@ -1,20 +1,11 @@
 import sys
-
-ROOT  = "../"
-# Add current working directory to sys.path
-# sys.path.append(ROOT)
-sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/")
-# sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Plateau_Problem/Triangulation_Meshing/")
-
-from Plateau_Problem.Triangulation_Meshing.PointList import *
-from Plateau_Problem.Triangulation_Meshing.tests.definir_cycle import *
+from ...Plateau_Problem.Triangulation_Meshing.PointList import *
+from .CreatingCycles import *
 from tqdm import tqdm
 from ...utils import *
-from _3DLoops._3dpu_using_dfs import *
-from Block_edges.block_edges import *
-import sys
-sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/MIP_constraints/Python/")
-from MIP_constraints.Python.CreatingCycles import *
+from ..._3DLoops._3dpu_using_dfs import *
+from ...Block_edges.block_edges import *
+from .CreatingCycles import *
 import gurobipy as gp
 from gurobipy import Model, GRB, quicksum
 
@@ -42,7 +33,7 @@ def fill_cycle(cycle,C):
     Edges = (E.blocked_edges)
     return Edges,M
 
-def minimize_edges_MIP(Edges,num_threads=1):
+def minimize_edges_MIP(Edges,time_limit,num_threads=1):
     Marked_edges = []
     Blocked_edges = Edges
     GC = Graph_Cycles(Blocked_edges, Marked_edges)
@@ -53,6 +44,7 @@ def minimize_edges_MIP(Edges,num_threads=1):
 
     # Suppress Gurobi solver output
     model.setParam('OutputFlag', 0)
+    model.setParam('TimeLimit', time_limit)
     model.setParam('Threads', num_threads)             
     # Match this to the --cpus-per-task value in SLURM script
     # model.setParam('LazyConstraints', 1) 
@@ -94,9 +86,9 @@ def minimize_edges_MIP(Edges,num_threads=1):
                 
                 # Update the graph cycles with the new marked edges
                 GC = Graph_Cycles(Blocked_edges, new_marked)
-                if cpt % 5 == 0:
-                    print(len(new_marked),len(GC.b_1))
-                cpt += 1
+                # if cpt % 5 == 0:
+                #     print(len(new_marked),len(GC.b_1))
+                # cpt += 1
             else:
                 print("No optimal solution found.")
 
@@ -116,7 +108,8 @@ def minimize_edges_MIP(Edges,num_threads=1):
             if x[edge].X > 0.5:
                 Marked_edges.append([G.mapping[edge[0]], G.mapping[edge[1]]])
     else:
-        print("No optimal solution found.")
+        print("Time limit exceeded we keep old Marked_edges")
+        Marked_edges = Blocked_edges
     
     return Marked_edges
 

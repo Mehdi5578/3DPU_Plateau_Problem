@@ -1,5 +1,5 @@
 import networkx as nx
-from CreatingGraph import *
+from .CreatingGraph import *
 from tqdm import tqdm
 
 class Graph_Cycles:

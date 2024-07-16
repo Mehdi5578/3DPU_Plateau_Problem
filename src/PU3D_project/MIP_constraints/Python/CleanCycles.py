@@ -1,6 +1,6 @@
 from .ConstructingSurfaces import *
 from .CreatingCycles import *
-from _3DLoops._3dpu_using_dfs import *
+from ..._3DLoops._3dpu_using_dfs import *
 import nibabel as nb
 
 ROOT = "../"

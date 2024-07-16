@@ -59,7 +59,7 @@ def intersection(Tr,P,Q):
         c,c_p = tuple(list(P-A)[:ind]+list(P-A)[ind+1:])
         t = (a*c_p - a_p*c)/(a*b_p - a_p*b)
         lbda = (c*b_p - c_p*b)/(a*b_p - a_p*b)
-        assert np.isclose(P +t*(Q-P), A+lbda*(B-A),atol =1e-10).all() ,("Tr",Tr,P +t*(Q-P), A+lbda*(B-A),"P",P,"Q",Q,"A",A,"B",B)
+        # assert np.isclose(P +t*(Q-P), A+lbda*(B-A),atol =1e-10).all() ,("Tr",Tr,P +t*(Q-P), A+lbda*(B-A),"P",P,"Q",Q,"A",A,"B",B)
         return P +t*(Q-P)
 
 

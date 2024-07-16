@@ -7,6 +7,7 @@ import os
 import pickle
 from typing import Union, Optional
 import multiprocessing as mp
+from ..utils import *
 from tqdm import tqdm
 import networkx as nx
 dim = int(3)
@@ -326,6 +327,39 @@ class Resiuals():
         
 
 
+    def separate_open_close(self):
+        Closing_edges = self.closing_edges
+        new_open_paths = []
+        new_closed_paths = []
+
+        for path in tqdm(self.open_paths):
+            open = False
+            for edge in Closing_edges:
+                open = open or ((edge[0] in path) and (edge[1] in path))
+            if open:
+                new_open_paths.append(path)
+            else:
+                new_closed_paths.append(path)
+        
+        self.open_paths = new_open_paths
+        self.cycles.extend(new_closed_paths)
+        new_open_paths = []
+
+        for path in self.open_paths:
+            for edge in Closing_edges:
+                if ((edge[0] in path) and (edge[1] in path)):
+                    in__ = path.index(edge[0])
+                    out__ = path.index(edge[1])
+                    if in__ < out__:
+                        new_path = path[out__:] + path[:in__] 
+                    else:
+                        new_path = path[in__:] + path[:out__]
+                    new_open_paths.append(new_path)
+        
+        self.open_paths = new_open_paths
+
+
+
     def fill_open_paths(self,separate = False,num_workers = 64):
         self.incycles = [False]*len(self.mapping)
         self.open_paths = []
@@ -358,6 +392,7 @@ class Resiuals():
             layer = new_layer
 
         self.open_paths = list(paths.values())
+
         for cyc in self.open_paths:
             self.graph_res_networkx.add_edge(cyc[-1],cyc[0])
             self.closing_edges.append((cyc[-1],cyc[0]))
@@ -385,9 +420,9 @@ class Resiuals():
                     self.open_paths.append(open_path[::-1])
                 else:
                     self.open_paths.append(open_path)
-        
-        
-        
+            
+            # self.separate_open_close()
+            
 
 
     def detect_cycles(self):
@@ -462,13 +497,10 @@ class Resiuals():
                 size_batches[batch] += size
                 if size_batches[batch] > mean_size:
                     batches_to_fill.remove(batch)
-
-
-            
-
-            
             
         return batches
+
+
     
     def untangle_partial(self,cycle):
         Cycle_edges = set([(cycle[i],cycle[(i+1)%len(cycle)]) for i in range(len(cycle))])
@@ -571,20 +603,69 @@ class Resiuals():
         
         return cycles_to_keep
     
-
-
-    
-        
-
-        
     
     
+    def link_open_cycles(self):
+        out_frame = nx.Graph()
+        X_,Y_,Z_ = self.X,self.Y,self.Z
+
+        for i in range(X_):
+            for j in range(Y_):
+                out_frame.add_edge((i,j+1,0),(i,j,0))
+                out_frame.add_edge((i+1,j,0),(i,j,0))
+                out_frame.add_edge((i,j+1,Z_-1),(i,j,Z_-1))
+                out_frame.add_edge((i+1,j,Z_-1),(i,j,Z_-1))
 
 
 
+
+        for j in range(Y_):
+            for k in range(Z_):
+                out_frame.add_edge((0,j,k),(0,j,k+1))
+                out_frame.add_edge((X_-1,j,k),(X_-1,j+1,k))
+                out_frame.add_edge((0,j,k),(0,j+1,k))
+                out_frame.add_edge((X_-1,j,k),(X_-1,j,k+1))
+
+        for i in range(X_): 
+            for k in range(Z_):
+                out_frame.add_edge((i,0,k),(i,0,k+1))
+                out_frame.add_edge((i,0,k),(i+1,0,k))
+                out_frame.add_edge((i,Y_-1,k),(i+1,Y_-1,k))
+                out_frame.add_edge((i,Y_-1,k),(i,Y_-1,k+1))
+        
+        Nodes = list(out_frame.nodes)
+        for node in Nodes:
+            if node[0] == X_ or node[1] == Y_ or node[2] == Z_:
+                out_frame.remove_node(node)
+        
+        for path in self.open_paths:
+            closed_path = path
+            new_begin = transform_res_to_point(self.mapping[path[0]])
+            new_end = transform_res_to_point(self.mapping[path[-1]])
+            int_begin = (int(new_begin[0]),int(new_begin[1]),int(new_begin[2]))
+            int_end = (int(new_end[0]),int(new_end[1]),int(new_end[2]))
+            closing = nx.shortest_path(out_frame,int_begin,int_end)
+            
+
+
+            
+        
 
         
-        
+
+    
+    def create_loops(self,separate = True,num_workers = 15):
+        self.map_nodes()
+        self.create_graph()
+        self.create_graph_networkx()
+        self.untangle_graph()
+        self.fill_open_paths(separate,num_workers)
+        self.detect_cycles()
+        if separate:
+            self.separate_open_close()
+
+
+
 def main():
     pass
 

@@ -30,6 +30,7 @@ def fill_cycle(cycle,C):
     Edges = (E.blocked_edges)
     return Edges
 
+
 def compute_absolute_phase_gradients(wrapped_phase, unwrapped_phase):
 
     gradient_x_unwrapped = np.diff(unwrapped_phase, axis=0, append=unwrapped_phase[0:1,:,:])
@@ -48,5 +49,6 @@ def compute_absolute_phase_gradients(wrapped_phase, unwrapped_phase):
     total_diff = np.count_nonzero(abs_diff_x) + np.count_nonzero(abs_diff_y) + np.count_nonzero(abs_diff_z)
     
     return total_diff
+
 
 

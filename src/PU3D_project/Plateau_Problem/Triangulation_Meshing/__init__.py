@@ -1,7 +1,6 @@
 
 from .Area_minimizing import *
 from .create_surface import *
-from .Edge_Flipping import *
 from .Final_surface import *
 from .PointList import *
 from .Triangle import *
