@@ -390,6 +390,7 @@ class Resiuals():
             
             assert layer != new_layer, "there is a repetition"
             layer = new_layer
+        
 
         self.open_paths = list(paths.values())
 
@@ -603,6 +604,11 @@ class Resiuals():
         
         return cycles_to_keep
     
+    # def untangle_2_open(self,open_path):
+    #     begin = open_path[0]
+    #     end = open_path[-1]
+
+    
     
     
     def link_open_cycles(self):
@@ -637,14 +643,19 @@ class Resiuals():
         for node in Nodes:
             if node[0] == X_ or node[1] == Y_ or node[2] == Z_:
                 out_frame.remove_node(node)
-        
-        for path in self.open_paths:
-            closed_path = path
+        self.new_open_paths = []
+        for path in tqdm(self.open_paths):
             new_begin = transform_res_to_point(self.mapping[path[0]])
             new_end = transform_res_to_point(self.mapping[path[-1]])
             int_begin = (int(new_begin[0]),int(new_begin[1]),int(new_begin[2]))
             int_end = (int(new_end[0]),int(new_end[1]),int(new_end[2]))
-            closing = nx.shortest_path(out_frame,int_begin,int_end)
+            closing = nx.shortest_path(out_frame,int_end,int_begin)
+            closed_path = [transform_res_to_point(self.mapping[pt]) for pt in path] + closing + [new_begin]
+
+            self.new_open_paths.append(closed_path)
+        
+        self.open_paths = self.new_open_paths
+
             
 
 
@@ -663,6 +674,9 @@ class Resiuals():
         self.detect_cycles()
         if separate:
             self.separate_open_close()
+        print("filling up the new open paths of number",len(self.open_paths))
+        # self.link_open_cycles()
+
 
 
 
