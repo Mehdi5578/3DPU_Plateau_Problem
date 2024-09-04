@@ -9,8 +9,8 @@ ROOT  = "../"
 sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/")
 # sys.path.append("/home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Plateau_Problem/Triangulation_Meshing/")
 
-from Plateau_Problem.Triangulation_Meshing.PointList import *
-from Plateau_Problem.Triangulation_Meshing.tests.definir_cycle import *
+from ...src.Plateau_Problem.Triangulation_Meshing.PointList import *
+from ...src.Plateau_Problem.Triangulation_Meshing.tests.definir_cycle import *
 from tqdm import tqdm
 import time
 from _3DLoops._3dpu_using_dfs import *

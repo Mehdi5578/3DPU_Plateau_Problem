@@ -95,8 +95,13 @@ def phase_unwrapping(quality_map, phases, forbidden_edges):
     return unwrapped_phases
 
 
-def unwrapp_phase(phase,forbidden_edges):
+def unwrapp_phase(phase,forbidden_edges,completely_block = False,weight = 1):
     quality_map_ = quality_map(phase)
     cost_map = quality_to_cost(quality_map_)
-    unwrapped_phase = phase_unwrapping(cost_map, phase, forbidden_edges)
+    if completely_block:
+        unwrapped_phase = phase_unwrapping(cost_map, phase, forbidden_edges)
+    else:
+        for edge in forbidden_edges:
+            cost_map[edge] = weight
+        unwrapped_phase = phase_unwrapping(cost_map, phase, [])
     return unwrapped_phase

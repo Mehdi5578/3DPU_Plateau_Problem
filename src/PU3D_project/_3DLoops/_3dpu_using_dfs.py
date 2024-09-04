@@ -8,7 +8,7 @@ import pickle
 from typing import Union, Optional
 import multiprocessing as mp
 from ..utils import *
-from tqdm import tqdm
+from  tqdm import tqdm
 import networkx as nx
 dim = int(3)
 
@@ -159,7 +159,7 @@ class Resiuals():
     def create_graph(self):
         for res in self.list_res:
             self.Res_graph[self.res_ordre[res]] = []
-        for res in tqdm(self.list_res):
+        for res in (self.list_res):
             self.nodes_of_not_boundary(res)
         
         for val in self.Res_graph.values():
@@ -173,12 +173,12 @@ class Resiuals():
     def untangle_graph(self):
         triples = [value for key,value in self.inverted_dictionnary.items() if len(key) == 3]
         doubles = [value for key,value in self.inverted_dictionnary.items() if len(key) == 2]
-        for double in tqdm(doubles):
+        for double in  (doubles):
             assert len(self.Res_graph[double[0]]) == 2, "Error this one has not two"
             children = self.Res_graph[double[0]]
             self.Res_graph[double[0]] =  [children[0]]
             self.Res_graph[double[1]] =  [children[1]]
-        for triple in tqdm(triples):
+        for triple in  (triples):
             assert(len(self.Res_graph[triple[0]]) == 3), "Error this has not three"
             children = self.Res_graph[triple[0]]
             self.Res_graph[triple[0]] = [children[0]]
@@ -203,7 +203,7 @@ class Resiuals():
 
     def reduire_cycles(self):
         new_Cycles = []
-        for cycle in tqdm(self.cycles):
+        for cycle in  (self.cycles):
             Cycles = self.reduire_cycle(cycle)
             for cycle in Cycles:
                 new_Cycles.append(cycle)
@@ -236,7 +236,7 @@ class Resiuals():
             self.connex[node] = 0
         colour = 1
 
-        for node in tqdm(range(len(self.mapping))):
+        for node in  (range(len(self.mapping))):
             if self.connex[node] == 0:
                 self.detect_connex(node,colour)
                 colour += 1
@@ -314,49 +314,18 @@ class Resiuals():
         return stack
 
     def detect_cycles_iterative(self):
-        for i in tqdm(range(len(self.mapping))):
+        for i in  (range(len(self.mapping))):
             if not self.visited[i]:
                 self.iterative_dfs(i)
                 
     def fill_starting_open_paths(self):
         """This should be after detecting the closed cycles"""
         self.starting_open_paths = []
-        for node in tqdm(range(len(self.mapping))):
+        for node in  (range(len(self.mapping))):
             if self.is_entering_from_boundary(node):
                 self.starting_open_paths.append(node)
         
 
-
-    def separate_open_close(self):
-        Closing_edges = self.closing_edges
-        new_open_paths = []
-        new_closed_paths = []
-
-        for path in tqdm(self.open_paths):
-            open = False
-            for edge in Closing_edges:
-                open = open or ((edge[0] in path) and (edge[1] in path))
-            if open:
-                new_open_paths.append(path)
-            else:
-                new_closed_paths.append(path)
-        
-        self.open_paths = new_open_paths
-        self.cycles.extend(new_closed_paths)
-        new_open_paths = []
-
-        for path in self.open_paths:
-            for edge in Closing_edges:
-                if ((edge[0] in path) and (edge[1] in path)):
-                    in__ = path.index(edge[0])
-                    out__ = path.index(edge[1])
-                    if in__ < out__:
-                        new_path = path[out__:] + path[:in__] 
-                    else:
-                        new_path = path[in__:] + path[:out__]
-                    new_open_paths.append(new_path)
-        
-        self.open_paths = new_open_paths
 
 
 
@@ -368,7 +337,7 @@ class Resiuals():
         antecedant = dict()
         paths = dict()
         visited = set()
-        for point in tqdm(layer):
+        for point in  (layer):
             paths[point] = [point]
             antecedant[point] = point
         cpt = 0
@@ -397,32 +366,35 @@ class Resiuals():
         for cyc in self.open_paths:
             self.graph_res_networkx.add_edge(cyc[-1],cyc[0])
             self.closing_edges.append((cyc[-1],cyc[0]))
-        mean_size = sum([len(cycle) for cycle in self.open_paths])/len(self.open_paths)
-        num_batches =int(sum([len(cycle) for cycle in self.open_paths])/len(max(self.open_paths,key = lambda x: len(x))) + 1)
-        print(num_batches)
+
         if separate:
+            new_open_paths = []
+            paths_to_ignore = []
             print("now separating the open paths")
-            # new_cycles = []
-            # for cycle in tqdm(self.open_paths):
-            #     new_cycles += self.untangle_2(cycle)
-
-            
-            batches = self.seprate_batches(num_batches)
-            batches = list(batches.values())
-            with mp.Pool(num_workers) as pool:
-                results = list(tqdm(pool.imap(self.process_batch, batches), total=num_batches))
-
-            new_cycles = [cycle for sublist in results for cycle in sublist]            
-            self.open_paths = []
-
-            for open_path in tqdm(new_cycles):
-                ind = 0
-                if open_path[ind+1] not in self.graph_res_networkx.neighbors(open_path[ind]):
-                    self.open_paths.append(open_path[::-1])
-                else:
-                    self.open_paths.append(open_path)
-            
-            # self.separate_open_close()
+            for open_path in  (self.open_paths[::-1]):
+                paths = self.untangle_2(open_path)
+                new_paths = []
+                for path in paths:
+                    if path[1] in self.graph_res_networkx.neighbors(path[0]):
+                        new_paths.append(path)
+                    else:
+                        new_paths.append(path[::-1])
+                
+                for path in new_paths:
+                    has_it = False
+                    for edge in self.closing_edges:
+                        if edge[0] in path and edge[1] in path:
+                            ind = path.index(edge[0])
+                            ind_2 = path.index(edge[1])
+                            path = path[ind+1:] + path[:ind+1]
+                            new_open_paths.append(path)
+                            has_it = True
+                            break
+                    if not has_it:
+                        self.cycles.append(path + [path[0]])
+            print("we eneded the separation")
+            self.open_paths = new_open_paths
+   
             
 
 
@@ -430,10 +402,15 @@ class Resiuals():
         not_visited = set(self.Res_graph.keys())
         for p in self.open_paths:
             not_visited.difference_update(p)
+        for c in self.cycles:
+            not_visited.difference_update(c)
         while not_visited:
             node = not_visited.pop()
             path = [node]
+            if not self.Res_graph[node]:
+                print(node)
             next_node  = self.Res_graph[node][0]
+
             while next_node != node:
                 if not self.Res_graph[next_node]:
                     print(next_node)
@@ -443,12 +420,12 @@ class Resiuals():
             not_visited.difference_update(path)
             self.cycles.append(path)
         new_cycles = []
-        for cycle in tqdm(self.cycles):
+        for cycle in  (self.cycles):
             new_cycles += self.untangle_2(cycle)
 
         self.cycles = []
 
-        for cycle in tqdm(new_cycles):
+        for cycle in  (new_cycles):
             ind = 0
             if cycle[ind+1] not in self.graph_res_networkx.neighbors(cycle[ind]):
                 self.cycles.append(cycle[::-1])
@@ -476,7 +453,7 @@ class Resiuals():
 
         self.open_paths = (sorted(self.open_paths,key = lambda x: len(x)))[::-1]
         
-        for open_path in tqdm(self.open_paths):
+        for open_path in  (self.open_paths):
             size = len(open_path)
            
 
@@ -564,6 +541,7 @@ class Resiuals():
     def untangle_2(self,cycle):
         cycles_to_keep = []
         cycles_to_test = []
+        cycles_to_ignore = []
         if self.is_cycle(nx.subgraph(self.graph_res_networkx,cycle)):
             cycles_to_keep.append(cycle)
         else:
@@ -584,20 +562,25 @@ class Resiuals():
                 edges_cycle = edges_cycle + new_edges
                 graph_cycle = nx.Graph()
                 graph_cycle.add_edges_from(edges_cycle)
-                if len(list(nx.cycle_basis(graph_cycle))) != 2:
+                if len(list(nx.connected_components(graph_cycle))) != 2:
                     print("Error in number of cycles in untangle_2")
                     if  len(list(nx.connected_components(graph_cycle))) != 2 or 1 not in [len(comp) for comp in nx.connected_components(graph_cycle)]:
+                        cycles_to_ignore.append(c)
                         print("Error in number of connected components")
                         print(list(nx.connected_components(graph_cycle)))
                         print(list(nx.cycle_basis(graph_cycle)),c,cycle)
-            
+                if len(list(nx.connected_components(graph_cycle))) == 2:
+                    for c in list(nx.connected_components(graph_cycle)):
+                        if len(c) == 2:
+                            C_C.append(list(c))
+                    
                 for b in list(nx.cycle_basis(graph_cycle)):
                     C_C.append(b)
                 
             cycles_to_test = []
             for c in C_C:
                 sub_c = nx.subgraph(self.graph_res_networkx,c)
-                if self.is_cycle(sub_c):
+                if self.is_cycle(sub_c)  or len(c) < 3:
                     cycles_to_keep.append(c)
                 else:
                     cycles_to_test.append(c)
@@ -622,9 +605,6 @@ class Resiuals():
                 out_frame.add_edge((i,j+1,Z_-1),(i,j,Z_-1))
                 out_frame.add_edge((i+1,j,Z_-1),(i,j,Z_-1))
 
-
-
-
         for j in range(Y_):
             for k in range(Z_):
                 out_frame.add_edge((0,j,k),(0,j,k+1))
@@ -643,8 +623,9 @@ class Resiuals():
         for node in Nodes:
             if node[0] == X_ or node[1] == Y_ or node[2] == Z_:
                 out_frame.remove_node(node)
+
         self.new_open_paths = []
-        for path in tqdm(self.open_paths):
+        for path in  (self.open_paths):
             new_begin = transform_res_to_point(self.mapping[path[0]])
             new_end = transform_res_to_point(self.mapping[path[-1]])
             int_begin = (int(new_begin[0]),int(new_begin[1]),int(new_begin[2]))
@@ -656,13 +637,6 @@ class Resiuals():
         
         self.open_paths = self.new_open_paths
 
-            
-
-
-            
-        
-
-        
 
     
     def create_loops(self,separate = True,num_workers = 15):
@@ -672,13 +646,7 @@ class Resiuals():
         self.untangle_graph()
         self.fill_open_paths(separate,num_workers)
         self.detect_cycles()
-        if separate:
-            self.separate_open_close()
-        print("filling up the new open paths of number",len(self.open_paths))
-        # self.link_open_cycles()
-
-
-
+        self.link_open_cycles()
 
 def main():
     pass

@@ -11,6 +11,7 @@ class GraphGrid3D:
         self.y_max = max(max(edge[1][1],edge[0][1]) for edge in Edges) + 1
         self.z_min = min(min(edge[1][2],edge[0][2]) for edge in Edges) - 1
         self.z_max = max(max(edge[1][2],edge[0][2]) for edge in Edges) + 1
+
         self.mapping = [] 
         self.index_mapping = {}
         self.edges = {}

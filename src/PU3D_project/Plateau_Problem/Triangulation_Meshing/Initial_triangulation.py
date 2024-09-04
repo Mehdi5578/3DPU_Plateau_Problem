@@ -125,24 +125,29 @@ class TriangularMesh:
             self.dict_vertexes[j] = set()
         
         self.triangles = []
+
+
+
         for tr in (self.mesh):
             tri = [self.mapping_index[tuple(pt)] for pt in tr]
-            self.common_dict_vertexes[tuple(sorted((tri[0],tri[1])))] = set()
-            self.common_dict_vertexes[tuple(sorted((tri[0],tri[2])))] = set()
-            self.common_dict_vertexes[tuple(sorted((tri[1],tri[2])))] = set() 
+            if len(set(tri)) == 3:
+                self.common_dict_vertexes[tuple(sorted((tri[0],tri[1])))] = set()
+                self.common_dict_vertexes[tuple(sorted((tri[0],tri[2])))] = set()
+                self.common_dict_vertexes[tuple(sorted((tri[1],tri[2])))] = set() 
         cpt = 0
         for tri in (self.mesh):
             triangle = [self.mapping_index[tuple(pt)] for pt in tri]
             tr = tuple(sorted(triangle))
-            self.triangles.append(tr)
-            self.position_triangle[tr] = cpt
-            cpt = cpt + 1
-            self.dict_vertexes[triangle[0]].add(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[1]].add(tuple(sorted(triangle)))
-            self.dict_vertexes[triangle[2]].add(tuple(sorted(triangle)))
-            self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[1])))].add(tuple(sorted(triangle)))
-            self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[2])))].add(tuple(sorted(triangle)))
-            self.common_dict_vertexes[tuple(sorted((triangle[1],triangle[2])))].add(tuple(sorted(triangle)))
+            if len(set(tr)) == 3:
+                self.triangles.append(tr)
+                self.position_triangle[tr] = cpt
+                cpt = cpt + 1
+                self.dict_vertexes[triangle[0]].add(tuple(sorted(triangle)))
+                self.dict_vertexes[triangle[1]].add(tuple(sorted(triangle)))
+                self.dict_vertexes[triangle[2]].add(tuple(sorted(triangle)))
+                self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[1])))].add(tuple(sorted(triangle)))
+                self.common_dict_vertexes[tuple(sorted((triangle[0],triangle[2])))].add(tuple(sorted(triangle)))
+                self.common_dict_vertexes[tuple(sorted((triangle[1],triangle[2])))].add(tuple(sorted(triangle)))
 
         for i in (self.v_indexes):
             self.modify_N(i)
@@ -157,7 +162,7 @@ class TriangularMesh:
 
             
     def clean_triangles(self):
-        pass
+        self.triangles
 
     def area_3D(self,tr):
         v = [self.mapping[tr[0]],self.mapping[tr[1]],self.mapping[tr[2]]]

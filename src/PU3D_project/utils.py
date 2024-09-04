@@ -51,4 +51,43 @@ def compute_absolute_phase_gradients(wrapped_phase, unwrapped_phase):
     return total_diff
 
 
+def unwrapp_function(un_phi_0,phi):
+    un_phi = phi - 2*np.pi*np.round((phi - un_phi_0)/(2*np.pi))
+    return un_phi
+
+
+
+def unwrapp(phase,Edges):
+    All_nodes = set([(i,j,k) for i in range(phase.shape[0]) for j in range(phase.shape[1]) for k in range(phase.shape[2])])
+    Visited = set()
+    Unvisited = All_nodes - Visited
+    Blocked_Edges = set(Edges)
+    Unwrapped_phase = np.zeros(phase.shape)
+    directions = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
+    while Unvisited:
+        source = Unvisited.pop()
+        Unwrapped_phase[source] = phase[source]
+        layer = set([source])
+        while layer:
+            next_layer = set()
+            for node in layer:
+                Visited.add(node)
+                for direction in directions:
+                    new_node = tuple(np.array(node)+np.array(direction))
+                    if new_node in All_nodes and new_node not in Visited:
+                        if (node,new_node) not in Blocked_Edges and (new_node,node) not in Blocked_Edges:
+                            Unwrapped_phase[new_node] = unwrapp_function(Unwrapped_phase[node],phase[new_node])
+                            next_layer.add(new_node)
+            layer = next_layer
+        Unvisited = All_nodes - Visited
+    
+
+    
+    return Unwrapped_phase, Visited
+
+        
+
+
+
+
 

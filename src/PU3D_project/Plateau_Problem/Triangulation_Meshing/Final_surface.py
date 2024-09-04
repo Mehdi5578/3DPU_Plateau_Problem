@@ -32,9 +32,13 @@ class Edge_Flipping(Updating_Laplace):
     def flip_edge(self,edge):
         old_triangles = self.common_dict_vertexes[edge]
         t1,t2 = old_triangles
+
         opposite_vertices = [v for v in t1 if v not in edge] + [v for v in t2 if v not in edge]
+        if len(opposite_vertices) != 2:
+            print(opposite_vertices,edge)
         new_triangles = [tuple(sorted([edge[0], opposite_vertices[0], opposite_vertices[1]])), 
                      tuple(sorted([edge[1], opposite_vertices[0], opposite_vertices[1]]))]
+
         return old_triangles,new_triangles
     
 
@@ -47,7 +51,7 @@ class Edge_Flipping(Updating_Laplace):
             
             swaped = False
 
-            for edge in tqdm(self.edges):
+            for edge in (self.edges):
                 if self.can_flip(edge):
 
                     old_tr, new_tr = self.flip_edge(edge)
