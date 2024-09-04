@@ -16,6 +16,7 @@ def points(cycle,C):
     return points
 
 def fill_cycle(cycle,C):
+    """Function for filling up the cycle using the construction of the Graph cycles C"""
     points = PointList()
     for res in cycle:
         points.add_point(transform_res_to_point(C.mapping[res]))
@@ -55,7 +56,7 @@ def minimize_edges_MIP(Edges, num_threads=1):
     # Initialize Graph_Cycles object
     GC = Graph_Cycles(Blocked_edges, Marked_edges)
     cpt = [0]
-    
+
     # Callback function to add lazy constraints
     def lazy_callback(model, where):
         if where == GRB.Callback.MIPSOL:
