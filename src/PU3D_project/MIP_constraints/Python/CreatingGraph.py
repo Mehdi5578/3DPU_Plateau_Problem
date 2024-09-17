@@ -34,8 +34,6 @@ class GraphGrid3D:
         self.create_graph()
         self.create_edges()
         self.refill_edges()
-        self.index_blocked_edges = set([self.map_edges_index[edge] for edge in self.blocked_edges])
-        self.index_edges = [self.map_edges_index[edge] for edge in self.edges]
 
 
     def fill_mapping(self):
