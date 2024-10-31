@@ -17,5 +17,5 @@ module load gurobi/11.0.1
 
 # pip install -r requirements.txt 
 
-python /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/src/tests/correct_loops_List_M.py > /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/results/correct_loops_List_M_100_cycles.txt
+python /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/src/tests/correct_loops_List_M.py > /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/Results/correct_loops_List_M_100_cycles.txt
 
