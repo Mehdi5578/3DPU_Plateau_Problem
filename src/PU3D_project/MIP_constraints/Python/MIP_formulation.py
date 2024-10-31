@@ -34,7 +34,7 @@ def fill_cycle(cycle,C):
     return Edges,M
 
 
-def minimize_edges_MIP(Edges, num_threads=1):
+def minimize_edges_MIP(Edges, num_threads=1,printing = 1):
     Marked_edges = []
     Blocked_edges = Edges
     G = GraphGrid3D(Blocked_edges, [])
@@ -43,7 +43,7 @@ def minimize_edges_MIP(Edges, num_threads=1):
     model = Model("Graph Problem")
 
     # Suppress Gurobi solver output
-    model.setParam('OutputFlag', 1)
+    model.setParam('OutputFlag', printing)
     model.setParam('Threads', num_threads)
     model.setParam('LazyConstraints', 1)
 
@@ -71,7 +71,8 @@ def minimize_edges_MIP(Edges, num_threads=1):
                 cpt[0] += 1
                 cycle_edges = [(min(cycle[i], cycle[i + 1]), max(cycle[i], cycle[i + 1])) for i in range(len(cycle) - 1)]
                 model.cbLazy(quicksum(x[edge] for edge in cycle_edges) >= 1)
-
+    if len(GC.b_1) == 0:
+        return [list(edge) for edge in Edges]
     initial_cycle = min(GC.b_1, key=len)
     initial_cycle_edges = [(min(initial_cycle[i], initial_cycle[i + 1]), max(initial_cycle[i], initial_cycle[i + 1])) for i in range(len(initial_cycle) - 1)]
     model.addConstr(quicksum(x[edge] for edge in initial_cycle_edges) >= 1)

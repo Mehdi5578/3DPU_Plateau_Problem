@@ -56,6 +56,85 @@ def unwrapp_function(un_phi_0,phi):
     return un_phi
 
 
+def edge_intersects_triangle(edge_start, edge_end, A, B, C):
+
+    EPSILON = 1e-8
+
+    # Direction vector of the segment
+    D = edge_end - edge_start
+
+    # Triangle vertices
+    V0 = A
+    V1 = B
+    V2 = C
+
+    # Compute edges of the triangle
+    edge1 = V1 - V0
+    edge2 = V2 - V0
+
+    # Begin calculating determinant - also used to calculate u parameter
+    h = np.cross(D, edge2)
+    a = np.dot(edge1, h)
+
+    # If a is close to zero, the line segment is parallel to the triangle plane
+    if -EPSILON < a < EPSILON:
+        return False  # Parallel
+
+    f = 1.0 / a
+    s = edge_start - V0
+    u = f * np.dot(s, h)
+
+    # Check if the intersection lies outside the triangle
+    if u < 0.0 or u > 1.0:
+        return False
+
+    q = np.cross(s, edge1)
+    v = f * np.dot(D, q)
+
+    # The intersection lies outside the triangle
+    if v < 0.0 or u + v > 1.0:
+        return False
+
+    # Compute t to find out where the intersection point is on the line
+    t = f * np.dot(edge2, q)
+
+    # Check if the intersection point is on the segment
+    if t < 0.0 or t > 1.0:
+        return False  # The intersection point is not within the segment
+
+    return True  # The edge intersects the triangle
+
+def intersect_edges(tr):
+    A,B,C = tr
+# Given triangle vertices
+
+    # Compute AABB
+    min_coords = np.floor(np.minimum.reduce([A, B, C])).astype(int)
+    max_coords = np.ceil(np.maximum.reduce([A, B, C])).astype(int)
+
+    # Initialize list to store intersecting edges
+
+    intersecting_edges = []
+
+    # Iterate over grid cells within the bounding box
+    for x in range(min_coords[0], max_coords[0] + 1):
+        for y in range(min_coords[1], max_coords[1] + 1):
+            for z in range(min_coords[2], max_coords[2] + 1):
+                # Define the 12 edges of the grid cell
+                # For simplicity, only a few edges are defined here
+                cell_edges = [
+                    (np.array([x, y, z]), np.array([x+1, y, z])),
+                    (np.array([x, y, z]), np.array([x, y+1, z])),
+                    (np.array([x, y, z]), np.array([x, y, z+1])),
+                    # Add other edges accordingly
+                ]
+                # Check intersection with the triangle
+                for edge_start, edge_end in cell_edges:
+                    if edge_intersects_triangle(edge_start, edge_end, A, B, C):
+                        intersecting_edges.append((edge_start, edge_end))
+    return intersecting_edges
+
+
 
 def unwrapp(phase,Edges):
     All_nodes = set([(i,j,k) for i in range(phase.shape[0]) for j in range(phase.shape[1]) for k in range(phase.shape[2])])

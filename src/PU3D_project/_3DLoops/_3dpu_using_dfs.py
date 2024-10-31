@@ -1,10 +1,5 @@
-from copy import deepcopy
-from dataclasses import dataclass
+
 import numpy as np
-import random
-import csv
-import os
-import pickle
 from typing import Union, Optional
 import multiprocessing as mp
 from ..utils import *
@@ -29,6 +24,7 @@ class Resiuals():
         self.indirected_graph = {}
         self.connected_components = {}
         self.mapping = []
+        self.matching_2 = dict()
         self.res_ordre = {}
         self.Separate_graphs = {}
         self.cycles = []
@@ -39,6 +35,8 @@ class Resiuals():
         self.inverted_dictionnary = dict()
         self.closing_edges = []
         self.open_paths = []
+        self.doubles = []
+        self.triples = []
 
     def wrap(self,phi) :
         return np.round(phi / (2 * np.pi)).astype(int)
@@ -171,14 +169,17 @@ class Resiuals():
 
 
     def untangle_graph(self):
-        triples = [value for key,value in self.inverted_dictionnary.items() if len(key) == 3]
-        doubles = [value for key,value in self.inverted_dictionnary.items() if len(key) == 2]
-        for double in  (doubles):
+
+        self.triples = [value for key,value in self.inverted_dictionnary.items() if len(key) == 3]
+        self.doubles = [value for key,value in self.inverted_dictionnary.items() if len(key) == 2]
+        for double in  (self.doubles):
             assert len(self.Res_graph[double[0]]) == 2, "Error this one has not two"
             children = self.Res_graph[double[0]]
             self.Res_graph[double[0]] =  [children[0]]
             self.Res_graph[double[1]] =  [children[1]]
-        for triple in  (triples):
+            self.matching_2[double[0]] = ((double[0],children[0]),(double[1],children[1]))
+            self.matching_2[double[1]] = ((double[0],children[1]),(double[1],children[0]))
+        for triple in  (self.triples):
             assert(len(self.Res_graph[triple[0]]) == 3), "Error this has not three"
             children = self.Res_graph[triple[0]]
             self.Res_graph[triple[0]] = [children[0]]

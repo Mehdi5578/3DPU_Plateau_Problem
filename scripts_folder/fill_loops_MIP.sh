@@ -15,7 +15,7 @@ module load gurobi/11.0.1
 
 # source /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/env_gurobi_HZ/bin/activate
 
-
 # pip install -r requirements.txt 
 
-python /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/src/tests/test_ROMEO.py > /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/scripts_folder/loops_filled_100_${SLURM_JOB_ID}.txt
+python /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/src/tests/test_ROMEO_MIP.py > /home/mehdii/projects/def-vidalthi/mehdii/3DPU_Plateau_Problem/scripts_folder/loops_filled_MIP_6000.txt
+

@@ -56,7 +56,7 @@ class Updating_Laplace(TriangularMesh):
     def calcul_weights(self,i,j) :
         S_ij = self.S_dict[(min(i,j),max(i,j))]
         S = sum(self.S_dict[(min(i,k),max(i,k))] for k in self.N[i])
-        self.w[i,j] =  S_ij / S
+        self.w[i,j] =  S_ij / (S + 1e-10)
 
 
          
